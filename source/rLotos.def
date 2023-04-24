@@ -1,0 +1,44 @@
+Bootstrap: docker
+From: ubuntu:20.04
+Stage: build
+
+%files
+
+%post
+    apt update
+    apt upgrade -y
+    apt install git -y
+    apt install python3-pip -y
+    
+    pip3 --no-cache-dir install numpy==1.23.4
+    pip3 --no-cache-dir install gym==0.26.2
+    pip3 --no-cache-dir install vtk==9.2.2
+    pip3 --no-cache-dir install pygame==2.1.2
+    pip3 --no-cache-dir install tensorflow==2.10.0
+    pip3 --no-cache-dir install tensorflow-probability==0.18.0
+
+    ln -fs /usr/share/zoneinfo/Europe/Rome /etc/localtime
+    export DEBIAN_FRONTEND=noninteractive
+    echo "export DEBIAN_FRONTEND=noninteractive" >> $SINGULARITY_ENVIRONMENT
+
+    apt-get update -y
+    apt-cache search openmpi
+    apt-get install libopenmpi-dev -y
+    apt install xorg openbox -y
+    apt install xauth
+    
+    echo "export DISPLAY=:0;" >> $SINGULARITY_ENVIRONMENT
+
+    apt-get install -y python3-opencv
+    pip3 --no-cache-dir install opencv-python==4.6.0.66
+    
+%runscript
+    
+    cd source/$1
+    python3 $2
+
+
+    
+    
+    
+

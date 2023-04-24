@@ -1,0 +1,14 @@
+data/PalaCell2D/app/*
+!data/PalaCell2D/app/palaCell
+!data/PalaCell2D/app/CMakeLists.txt
+!data/PalaCell2D/app/palaCell.cpp
+output
+source/experiment1/__pycache__/*
+source/experiment1/env/__pycache__/checks.cpython-38.pyc
+source/experiment1/env/__pycache__/PalacellEnv.cpython-38.pyc
+source/experiment1/env/__pycache__/vtkInterface.cpython-38.pyc
+source/experiment2/__pycache__/*
+source/experiment2/env/__pycache__/checks.cpython-38.pyc
+source/experiment2/env/__pycache__/PalacellEnv.cpython-38.pyc
+source/experiment2/env/__pycache__/palacellProlifTrain.cpython-38.pyc
+source/experiment2/env/__pycache__/vtkInterface.cpython-38.pyc
