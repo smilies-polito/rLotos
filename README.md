@@ -15,7 +15,7 @@ rLotos v1.0:
 
 ## How to cite
 
-* Castrignanò, A., Bardini, R., Savino, A., Di Carlo, S. (2023) A deep reinforcement learning approach to the optimization of epithelial sheets biofabrication (Submitted for review to PLOS Computational Biology journal).
+* Castrignanò, A., Bardini, R., Savino, A., Di Carlo, S. (2023) A methodology combining reinforcement learning and simulation to optimize biofabrication protocols applied to the simulated culture of epithelial sheets. (Submitted for review to JOCS journal).
 
 
 * Castrignanò, A. (2022). A reinforcement learning approach to the computational generation of biofabrication protocols (Master Thesis dissertation, Politecnico di Torino). URL: http://webthesis.biblio.polito.it/id/eprint/25391 
