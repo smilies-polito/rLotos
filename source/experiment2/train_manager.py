@@ -11,6 +11,7 @@ from train import Train
 import itertools
 from multiprocessing import Process
 from multiprocessing import Pipe
+from xvfbwrapper import Xvfb
 
 lr_list = [0.001, 0.0001, 0.00001]
 gamma_list = [0.99, 0.95]
@@ -91,4 +92,8 @@ def parallel_train():
             print(e)
 
 if __name__=='__main__':
+    
+    vdisplay = Xvfb()
+    vdisplay.start()
     parallel_train()
+    vdisplay.stop()
