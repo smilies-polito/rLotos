@@ -26,6 +26,12 @@ Stage: build
     apt-get install libopenmpi-dev -y
     apt install xorg openbox -y
     apt install xauth
+<<<<<<< HEAD
+=======
+
+    apt-get install xvfb
+    pip install xvfbwrapper
+>>>>>>> development
     
     echo "export DISPLAY=:0;" >> $SINGULARITY_ENVIRONMENT
 

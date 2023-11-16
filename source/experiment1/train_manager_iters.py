@@ -11,6 +11,10 @@ from train import Train
 import itertools
 from multiprocessing import Process
 from multiprocessing import Pipe
+<<<<<<< HEAD
+=======
+from xvfbwrapper import Xvfb
+>>>>>>> development
 
 iters_list = [5,10,30,40,50,60,70,80,100,200]
 lr = 0.0001
@@ -84,4 +88,12 @@ def parallel_train():
             print(e)
 
 if __name__=='__main__':
+<<<<<<< HEAD
     parallel_train()
+=======
+    
+    vdisplay = Xvfb()
+    vdisplay.start()
+    parallel_train()
+    vdisplay.stop()
+>>>>>>> development
