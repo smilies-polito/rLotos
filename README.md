@@ -39,20 +39,20 @@ git clone https://github.com/smilies-polito/rLotos.git
 3) Move to the rLotos source subfolder, and build the singularity container with 
 
 ```
-mv rLotos/source
+cd rLotos/source
 sudo singularity build rLotos.sif rLotos.def
 ```
 or
 
 ```
-mv rLotos/source
+cd rLotos/source
 singularity build --fakeroot rLotos.sif rLotos.def
 ```
 
 4) Set execution privileges to `palaCell` binary file in `/data` folder
 
 ```
-mv rLotos/data/app
+cd rLotos/data/app
 chmod +x palaCell
 ```
 
@@ -90,7 +90,7 @@ singularity run --no-home --bind /local/path/to/rLotos:/local/path/to/home/ rLot
 **Experiment 2**: refers to Target 2 - exploration of different values of learning rate `lr` and `gamma`
 
 ```
-singularity run --no-home --bind /local/path/to/rLotos:/local/path/to/home/ rLotos.sif experiment2 train_manager_iters.py
+singularity run --no-home --bind /local/path/to/rLotos:/local/path/to/home/ rLotos.sif experiment2 train_manager.py
 ```
 
 ### Reproducing the experiments manually
@@ -106,21 +106,21 @@ To run an experiment manually:
 **Experiment 1.1**: Target 1 - exploration of different values of learning rate `lr` and `gamma`
 
 ```
-mv /source/experiment1
+cd /source/experiment1
 pyhon3 train_manager.py
 ```
 
 **Experiment 1.2**: refers to Target 1 - exploration of different values of `iters` with fixed values of `lr` and `gamma`
 
 ```
-mv /source/experiment1
+cd /source/experiment1
 pyhon3 train_manager_iters.py
 ```
 
 **Experiment 2**: refers to Target 2 - exploration of different values of learning rate `lr` and `gamma`
 
 ```
-mv /source/experiment2
+cd /source/experiment2
 pyhon3 train_manager.py
 ```
 
