@@ -30,6 +30,8 @@ Stage: build
     apt-get install xvfb
     pip install xvfbwrapper
     
+    pip3 install pygad==1.0.17
+
     echo "export DISPLAY=:0;" >> $SINGULARITY_ENVIRONMENT
 
     apt-get install -y python3-opencv
