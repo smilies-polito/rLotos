@@ -10,7 +10,7 @@ from subprocess import DEVNULL
 import xml.etree.ElementTree as ET
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from tensorflow.keras.preprocessing.image import img_to_array
+#from tensorflow.keras.preprocessing.image import img_to_array
 from xml.dom import minidom
 import time
 import math
@@ -97,6 +97,7 @@ class PalacellEnv():
     out['compr_history'] = self.compr_history
     return out
 
+  #removing the image-to-array conversion to avoid tensorflow usage
   def step(self, action):
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
@@ -115,7 +116,8 @@ class PalacellEnv():
       raise Exception(e)
 
     os.chdir(cwd)
-    observation = img_to_array(self.render()).reshape((1,self.width,self.height,3))
+    observation = self.render() # img_to_array(self.render()).reshape((1,self.width,self.height,3))  #removing the image-to-array conversion to avoid tensorflow usage
+
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
     cell_num = vki.read_cell_num("output/"+self.output_file+"_final_cell")

@@ -56,9 +56,17 @@ class Evolve:
         #ga hyperparameters from pyGAD
         self.num_generations=num_generations
         self.num_parents_mating=num_parents_mating
-        self.initial_population=self.generate_initial_protocols()
-        self.fitness_func=self.fitness_func()
-        self.on_generation=self.on_generation()
+        #self.initial_population=self.generate_initial_protocols()
+        #self.fitness_func=self.fitness_function()
+        #self.on_generation=self.on_generation()
+
+        #initializing ga instance as attribute
+        self.ga_instance = pygad.GA(num_generations=self.num_generations,
+                       num_parents_mating=self.num_parents_mating,
+                       #initial_population=self.initial_population,
+                       num_genes=self.n_protocol_segments,
+                       fitness_func=self.fitness_func,
+                       on_generation=self.on_generation)
 
         #optimization process id
         self.id = id
@@ -68,7 +76,7 @@ class Evolve:
     # this function must simulate the environment using
     # the solution to stimulate it
     # and compute fitness getting the final n of cells from it
-    def fitness_function(self, ga_instance, solution, sol_idx):
+    def fitness_func(self, ga_instance, solution, sol_idx):
 
         # reset environment
         self.env.reset()
@@ -107,7 +115,7 @@ class Evolve:
         return solution_fitness
 
     # pygad method to print stats at every generation
-    def on_generation(self):
+    def on_generation(ga_instance):
         print(f"Generation = {self.ga_instance.generations_completed}")
         print(f"Fitness    = {self.ga_instance.best_solution()[1]}")
     
@@ -149,15 +157,7 @@ class Evolve:
         '''
         setup evolutive process
         '''
-        # creating ga instance
-        ga_instance = pygad.GA(num_generations=self.num_generations,
-                       num_parents_mating=self.num_parents_mating,
-                       #initial_population=self.initial_population,
-                       num_genes=self.n_protocol_segments,
-                       fitness_func=self.fitness_func,
-                       on_generation=self.on_generation())
         
-        self.ga_instance = ga_instance
 
         epochs = self.env.epochs
         iterations = self.env.iterations

@@ -19,19 +19,23 @@
 
 import time
 import env.PalacellEnv as penv
-from source.experiment3.evolve import Evolve
+from evolve import Evolve
 import itertools
 from multiprocessing import Process
 from multiprocessing import Pipe
-from xvfbwrapper import Xvfb
+#from xvfbwrapper import Xvfb
 
 #TODO: set relevant values
-initial_population_list = [0.99, 0.95]
-num_parents_mating_list = [0.001, 0.0001, 0.00001]
+initial_population_list = [5, 10, 100]
+num_parents_mating_list = [2, 5, 10]
 
 base_outfolder = "../../results"
 
 def parallel_evolve():
+
+    #TODO: set relevant values
+    initial_population_list = [5, 10, 100]
+    num_parents_mating_list = [2, 5, 10]
 
     #set when loading previous state
     starting_epoch = 0
@@ -40,28 +44,30 @@ def parallel_evolve():
     evolutions = []
 
     combs = itertools.product(initial_population_list, num_parents_mating_list)
-    for i, (initial_population_list, num_parents_mating_list) in enumerate(combs):
+    for i, (initial_population, num_parents_mating) in enumerate(combs):
 
         # iters indicates the total simulation length required
         # max iterations the maximum simulation length accepted
         # (in this case it is not required to specify it but let's set them coherently)
-        env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population_list)+'_'+str(num_parents_mating_list)+'.xml', output_file='chem_'+str(initial_population_list)+'_'+str(num_parents_mating_list)+'-',
+        env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population)+'_'+str(num_parents_mating)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(num_parents_mating)+'-',
             output_dir='experiment3/new_palacell_out', max_iterations=3400)
         
-        # we consider a single epoch with iters simulation steps
-        # since the ga generates solutions for the whole simulation
-        # everytime a solution is tested, we create a new environment
-        env.epochs = 1
+        
 
         envs.append(env)
 
     processes = []
     senders = []
 
+    
+
     combs = itertools.product(initial_population_list, num_parents_mating_list)
-    for i, (initial_population_list, num_parents_mating_list) in enumerate(combs):
+    for i, (initial_population, num_parents_mating) in enumerate(combs):
         recv, send = Pipe()
-        evolve = Evolve(envs[i], initial_population_list, num_parents_mating_list, i)
+        
+        #setting simulation duration to 500 time steps
+        #protocol segments 5
+        evolve = Evolve(envs[i], simulation_duration=500, n_protocol_segments=5, num_generations=10, num_parents_mating=num_parents_mating, id=i)
         proc = Process(target=evolve.evolve, args=[5, True, recv, starting_epoch])
         proc.start()
         evolutions.append(evolve)
@@ -92,7 +98,7 @@ def parallel_evolve():
 
 if __name__=='__main__':
     
-    vdisplay = Xvfb()
-    vdisplay.start()
+    #vdisplay = Xvfb()
+    #vdisplay.start()
     parallel_evolve()
-    vdisplay.stop()
+    #vdisplay.stop()
