@@ -27,21 +27,26 @@ import pygad
 base_outfolder = "../../results"
 
 class Evolve:
-    def __init__(self, env, simulation_duration, n_protocol_segments, num_generations, num_parents_mating, id):
+    def __init__(self, env, simulation_duration, n_protocol_segments, sol_per_pop, num_generations, num_parents_mating, id):
         
+        #global env
+        #self.env=env
         #environment instance
         self.env = env
 
         #simulation duration set up
         #TODO: make this setting more organic
         self.simulation_duration=simulation_duration
-        self.env.max_iterations=self.simulation_duration
+        #self.env.max_iterations=self.simulation_duration
+        env.max_iterations=self.simulation_duration
 
         # protocol temporal structure set up
         # n of protocol segments sets the n of epochs in the env
         self.n_protocol_segments=n_protocol_segments
-        self.env.epochs=self.n_protocol_segments
-        self.env.iters= abs(self.simulation_duration / self.n_protocol_segments)
+        #self.env.epochs=self.n_protocol_segments
+        env.epochs=self.n_protocol_segments
+        #self.env.iters= abs(self.simulation_duration / self.n_protocol_segments)
+        env.iters= abs(self.simulation_duration / self.n_protocol_segments)
 
         #TODO: this can be used to assign different weights to different segments
         #for now let's just use the n of protocol segments to set num_genes
@@ -59,12 +64,14 @@ class Evolve:
         #self.initial_population=self.generate_initial_protocols()
         #self.fitness_func=self.fitness_function()
         #self.on_generation=self.on_generation()
+        self.sol_per_pop=sol_per_pop
 
         #initializing ga instance as attribute
         self.ga_instance = pygad.GA(num_generations=self.num_generations,
                        num_parents_mating=self.num_parents_mating,
                        #initial_population=self.initial_population,
                        num_genes=self.n_protocol_segments,
+                       sol_per_pop=self.sol_per_pop,
                        fitness_func=self.fitness_func,
                        on_generation=self.on_generation)
 
@@ -76,7 +83,7 @@ class Evolve:
     # this function must simulate the environment using
     # the solution to stimulate it
     # and compute fitness getting the final n of cells from it
-    def fitness_func(self, ga_instance, solution, sol_idx):
+    def fitness_func(self, ga, solution, sol_idx):
 
         # reset environment
         self.env.reset()
@@ -90,7 +97,7 @@ class Evolve:
         # we consider one epoch with iters simulation steps per protocol segment
         starting_epoch=0
         epochs=self.env.epochs
-
+        
         # protocol segments as a list of genes in the solution
         # TODO: understand if pygad supports lists as genes
         # if not fall back on using only comprForce
@@ -115,7 +122,7 @@ class Evolve:
         return solution_fitness
 
     # pygad method to print stats at every generation
-    def on_generation(ga_instance):
+    def on_generation(self, ga_instance):
         print(f"Generation = {self.ga_instance.generations_completed}")
         print(f"Fitness    = {self.ga_instance.best_solution()[1]}")
     
@@ -123,7 +130,8 @@ class Evolve:
     def get_infos(self):
         strings = [""]
         strings.append("evolve id: "+str(self.id))
-        strings.append("env infos: "+self.env._get_info())
+        #strings.append("env infos: "+self.env._get_info())
+        strings.append("env infos: "+env._get_info())
 
         strings.append("population fitness infos: "+self.ga_instance.cal_pop_fitness())
 
@@ -153,6 +161,7 @@ class Evolve:
         num_continue = self.env.num_continue
         num_discrete = self.env.num_discrete
         self.env.save_performance([])
+        
 
         '''
         setup evolutive process
@@ -161,8 +170,9 @@ class Evolve:
 
         epochs = self.env.epochs
         iterations = self.env.iterations
-
+        
         output_dir = self.env.output_dir+"_"+str(self.num_generations)+"_"+str(self.num_parents_mating)
+        
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
         if not os.path.exists(base_outfolder+"/"+output_dir):
