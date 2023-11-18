@@ -30,7 +30,7 @@ Stage: build
     apt-get install xvfb
     pip install xvfbwrapper
     
-    pip3 install pygad==1.0.17
+    pip3 install pygad==3.2.0
 
     echo "export DISPLAY=:0;" >> $SINGULARITY_ENVIRONMENT
 
