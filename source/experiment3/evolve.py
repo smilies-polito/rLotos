@@ -201,6 +201,8 @@ class Evolve:
         ga_instance = pygad.GA(num_generations=self.num_generations,
                        num_parents_mating=self.num_parents_mating,
                        #initial_population=self.initial_population,
+                       init_range_low=0,
+                       init_range_high=10,
                        num_genes=self.n_protocol_segments,
                        sol_per_pop=self.sol_per_pop,
                        fitness_func=self.fitness_func,
