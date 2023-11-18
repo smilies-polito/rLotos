@@ -23,10 +23,11 @@ from evolve import Evolve
 import itertools
 from multiprocessing import Process
 from multiprocessing import Pipe
-#from xvfbwrapper import Xvfb
+from xvfbwrapper import Xvfb
 
-#TODO: set relevant values
-initial_population_list = [5, 10, 100]
+#Values of initial population numerosity are set based on values from the documentation plus an higher value
+#number of parents mating are chose to be lower or equal to the total populations generating different degrees of elitism
+initial_population_list = [10, 20, 50]
 num_parents_mating_list = [2, 5, 10]
 
 base_outfolder = "../../results"
@@ -101,7 +102,7 @@ def parallel_evolve():
 
 if __name__=='__main__':
     
-    #vdisplay = Xvfb()
-    #vdisplay.start()
+    vdisplay = Xvfb()
+    vdisplay.start()
     parallel_evolve()
-    #vdisplay.stop()
+    vdisplay.stop()
