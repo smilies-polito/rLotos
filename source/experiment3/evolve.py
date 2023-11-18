@@ -66,15 +66,7 @@ class Evolve:
         #self.on_generation=self.on_generation()
         self.sol_per_pop=sol_per_pop
 
-        #initializing ga instance as attribute
-        self.ga_instance = pygad.GA(num_generations=self.num_generations,
-                       num_parents_mating=self.num_parents_mating,
-                       #initial_population=self.initial_population,
-                       num_genes=self.n_protocol_segments,
-                       sol_per_pop=self.sol_per_pop,
-                       fitness_func=self.fitness_func,
-                       on_generation=self.on_generation)
-
+        
         #optimization process id
         self.id = id
     
@@ -133,7 +125,7 @@ class Evolve:
     # this function must call functions to simulate the environment using
     # the solution to stimulate it
     # and compute fitness getting the final n of cells from functions to render the environment
-    def fitness_func(solution, sol_idx):
+    def fitness_func(self, ga_instance, solution, sol_idx):
 
         #use solution as a protocol and administer it to the env
         #get final n of cells at the end of the simulation
@@ -177,18 +169,13 @@ class Evolve:
         #check for env integrity
         checks.check_env(self.env)
 
-        '''
-        setup the environment
-        '''
+        
+        #setup the environment
         num_continue = self.env.num_continue
         num_discrete = self.env.num_discrete
         self.env.save_performance([])
         
-
-        '''
-        setup evolutive process
-        '''
-        
+       
 
         epochs = self.env.epochs
         iterations = self.env.iterations
@@ -200,7 +187,17 @@ class Evolve:
         if not os.path.exists(base_outfolder+"/"+output_dir):
             os.makedirs(base_outfolder+"/"+output_dir)
 
-        self.ga_instance.run()
+        #initializing ga instance
+        ga_instance = pygad.GA(num_generations=self.num_generations,
+                       num_parents_mating=self.num_parents_mating,
+                       #initial_population=self.initial_population,
+                       num_genes=self.n_protocol_segments,
+                       sol_per_pop=self.sol_per_pop,
+                       fitness_func=self.fitness_func,
+                       on_generation=self.on_generation)
+
+
+        ga_instance.run()
 
 """
     Function stubs to manage more protocol structural complexity in the future (or with other libraries)
