@@ -20,6 +20,7 @@
 import numpy as np
 import time
 import os
+import random
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import env.checks as checks
 import pygad
@@ -95,14 +96,23 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
+
+        print("The solution is: ", protocol)
         for j in range(starting_epoch,epochs):
             
             # j selects the protocol segment
-            # for each segment an axis and a comprForce level
-            axis=protocol[j][0]
-            comprForce=protocol[j][1]
+            # for each segment a comprForce level
+            #TODO: integrate also axis
+            #axis=protocol[j][0]
+            comprForce=protocol[j]#[1]
 
-            #for iters simulation steps, administering these stimuli
+            #for iters simulation steps, administering
+            #-generated comprForce stimuli 
+            #axis value is generated randomly for each segment
+            #TODO: evolve also axis value
+
+            axis=random.choice(['X','Y'])
+           
             self.env.step([axis, comprForce])
 
         #getting the final n of cells at the end of the simulation
