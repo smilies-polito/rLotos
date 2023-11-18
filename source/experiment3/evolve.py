@@ -97,7 +97,8 @@ class Evolve:
         protocol = solution
 
 
-        print("The solution is: ", protocol)
+        #print("The solution is: ", protocol)
+        
         for j in range(starting_epoch,epochs):
             
             # j selects the protocol segment
@@ -149,13 +150,29 @@ class Evolve:
     def on_generation(self, ga_instance):
         print(f"Generation = {self.ga_instance.generations_completed}")
         print(f"Fitness    = {self.ga_instance.best_solution()[1]}")
-    
+        
+        #pyGAD instance saving
+        self.ga_instance.save(filename=output_dir+str(self.ga_instance.generations_completed)+"_generation_ga_instance")
+        
+        #pyGAD solution fitness visualization and saving
+        fitnesses=self.ga_instance.cal_pop_fitness()
+        
+        # CSV file to append the vector
+        fitnessTrack = output_dir+"/fitness_track.csv"
+
+        # Open the file in append mode and append the vector
+        with open(fitnessTrack, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(fitnesses)
+
+
+
+
     
     def get_infos(self):
         strings = [""]
         strings.append("evolve id: "+str(self.id))
-        #strings.append("env infos: "+self.env._get_info())
-        strings.append("env infos: "+env._get_info())
+        strings.append("env infos: "+self.env._get_info())
 
         strings.append("population fitness infos: "+self.ga_instance.cal_pop_fitness())
 
@@ -171,24 +188,15 @@ class Evolve:
             print(s)
         return strings
 
-    def evolve(self, save_every=10, verbose=True, recv=None, starting_epoch=0):
+    def evolve(self, save_every=10, verbose=True, recv=None):
         
         #TODO: substitute tf logging with pyGAD logging
-        #tf.get_logger().setLevel('ERROR')   
 
         #check for env integrity
         checks.check_env(self.env)
-
         
-        #setup the environment
-        num_continue = self.env.num_continue
-        num_discrete = self.env.num_discrete
+        #setup the environment savings
         self.env.save_performance([])
-        
-       
-
-        epochs = self.env.epochs
-        iterations = self.env.iterations
         
         output_dir = self.env.output_dir+"_"+str(self.num_generations)+"_"+str(self.num_parents_mating)
         
@@ -206,8 +214,9 @@ class Evolve:
                        num_genes=self.n_protocol_segments,
                        sol_per_pop=self.sol_per_pop,
                        fitness_func=self.fitness_func,
-                       on_generation=self.on_generation)
-
+                       on_generation=self.on_generation,
+                       save_best_solutions=True,
+                       save_solutions=True)
 
         ga_instance.run()
 

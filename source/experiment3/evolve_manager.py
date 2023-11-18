@@ -25,18 +25,14 @@ from multiprocessing import Process
 from multiprocessing import Pipe
 from xvfbwrapper import Xvfb
 
-#Values of initial population numerosity are set based on values from the documentation plus an higher value
+#Values of initial population numerosity are set based on values from the documentation
 #number of parents mating are chose to be lower or equal to the total populations generating different degrees of elitism
-initial_population_list = [10, 20, 50]
-num_parents_mating_list = [2, 5, 10]
+initial_population_list = [10, 20]
+num_parents_mating_list = [2, 5]
 
 base_outfolder = "../../results"
 
 def parallel_evolve():
-
-    #TODO: set relevant values
-    initial_population_list = [5, 10, 100]
-    num_parents_mating_list = [2, 5, 10]
 
     #set when loading previous state
     starting_epoch = 0
@@ -51,28 +47,24 @@ def parallel_evolve():
         # max iterations the maximum simulation length accepted
         # (in this case it is not required to specify it but let's set them coherently)
         env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population)+'_'+str(num_parents_mating)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(num_parents_mating)+'-',
-            output_dir='experiment3/new_palacell_out', max_iterations=3400)
-        
-        
+            output_dir='experiment3/new_palacell_out', max_iterations=3400)   
 
         envs.append(env)
 
     processes = []
     senders = []
 
-    
-
     combs = itertools.product(initial_population_list, num_parents_mating_list)
     for i, (initial_population, num_parents_mating) in enumerate(combs):
         recv, send = Pipe()
         
         #setting simulation duration to 500 time steps
-        #protocol segments 5
+        #protocol segments lasting 5 iters
         # be careful, with percentage of mutated genes of 10% and 10 genes(es sim duration 500, protocol segments 5) it yields a warning that 0 genes get mutated 
         # selecting parameters to have more than 10 genes
         #and in accordance with the 5 iter per epoch in exp1
-        evolve = Evolve(envs[i], simulation_duration=500, n_protocol_segments=50, sol_per_pop=100, num_generations=10, num_parents_mating=num_parents_mating, id=i)
-        proc = Process(target=evolve.evolve, args=[5, True, recv, starting_epoch])
+        evolve = Evolve(envs[i], simulation_duration=50, n_protocol_segments=10, sol_per_pop=100, num_generations=10, num_parents_mating=num_parents_mating, id=i)
+        proc = Process(target=evolve.evolve, args=[5, True, recv])
         proc.start()
         evolutions.append(evolve)
         processes.append(proc)
