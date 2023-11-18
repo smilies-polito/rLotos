@@ -61,6 +61,7 @@ class Evolve:
 
         #ga hyperparameters from pyGAD
         self.num_generations=num_generations
+        #self.initial_population=initial_population
         self.num_parents_mating=num_parents_mating
         #self.initial_population=self.generate_initial_protocols()
         #self.fitness_func=self.fitness_function()
@@ -70,6 +71,8 @@ class Evolve:
         
         #optimization process id
         self.id = id
+
+        print ("Process ", self.id, " initialized")
     
     #a function to support the fitness_func()
     #in simulating the administration of the solution
@@ -78,7 +81,7 @@ class Evolve:
 
         # reset environment
         self.env.reset()
-
+        
         # act on environment with solution as protocol
         # the step() function executes iters simulation steps
         # we use epochs within this function to handle temporal structure of protocol
@@ -96,7 +99,7 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
-
+        print("Administering solution:\n", solution)
         #print("The solution is: ", protocol)
         
         for j in range(starting_epoch,epochs):
@@ -118,6 +121,7 @@ class Evolve:
 
         #getting the final n of cells at the end of the simulation
         nCells = self.env.get_performance()
+        print("Protocol administration made ", nCells, " grow!")
 
         return nCells
 
@@ -143,19 +147,21 @@ class Evolve:
         nCells=self.administer_solution(solution=solution)
 
         solution_fitness=self.computeFitness(nCells=nCells)
+        
+        print("Fitness for solution ", sol_idx, " is ", solution_fitness)
 
         return solution_fitness
 
     # pygad method to print stats at every generation
     def on_generation(self, ga_instance):
-        print(f"Generation = {self.ga_instance.generations_completed}")
-        print(f"Fitness    = {self.ga_instance.best_solution()[1]}")
+        print(f"Generation = {ga_instance.generations_completed}")
+        print(f"Fitness    = {ga_instance.best_solution()[1]}")
         
         #pyGAD instance saving
-        self.ga_instance.save(filename=output_dir+str(self.ga_instance.generations_completed)+"_generation_ga_instance")
+        ga_instance.save(filename=output_dir+str(ga_instance.generations_completed)+"_generation_ga_instance")
         
         #pyGAD solution fitness visualization and saving
-        fitnesses=self.ga_instance.cal_pop_fitness()
+        fitnesses=ga_instance.cal_pop_fitness()
         
         # CSV file to append the vector
         fitnessTrack = output_dir+"/fitness_track.csv"
@@ -164,9 +170,6 @@ class Evolve:
         with open(fitnessTrack, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(fitnesses)
-
-
-
 
     
     def get_infos(self):
