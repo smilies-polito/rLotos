@@ -78,21 +78,18 @@ class Evolve:
         #optimization process id
         self.id = id
     
-    
-    # fitness equals the final n of cells in a simulation
-    # this function must simulate the environment using
-    # the solution to stimulate it
-    # and compute fitness getting the final n of cells from it
-    def fitness_func(self, ga, solution, sol_idx):
+    #a function to support the fitness_func()
+    #in simulating the administration of the solution
+    #leveraging on the environment instance
+    def administer_solution(self, solution):
 
         # reset environment
         self.env.reset()
 
         # act on environment with solution as protocol
         # the step() function executes iters simulation steps
-        # so it can sustain the entire simulation execution.
-        # but uses the same actions along the entire simulation
-        # let's use epochs within this function to handle temporal structure of protocol
+        # we use epochs within this function to handle temporal structure of protocol
+        # 1 epoch - 1 segment
 
         # we consider one epoch with iters simulation steps per protocol segment
         starting_epoch=0
@@ -117,7 +114,32 @@ class Evolve:
             self.env.step([axis, comprForce])
 
         #getting the final n of cells at the end of the simulation
-        solution_fitness = self.env.get_performance()
+        nCells = self.env.get_performance()
+
+        return nCells
+
+    #a function to support the fitness_func()
+    #in computing the fitness of the solution
+    #leveraging on the returned value from simulation
+    #can support simple passing, or be made more complex
+    def computeFitness(self, nCells):
+
+        #passing the final n of cells at the end of the simulation
+        solution_fitness = nCells
+
+        return solution_fitness
+    
+    # fitness equals the final n of cells in a simulation
+    # this function must call functions to simulate the environment using
+    # the solution to stimulate it
+    # and compute fitness getting the final n of cells from functions to render the environment
+    def fitness_func(solution, sol_idx):
+
+        #use solution as a protocol and administer it to the env
+        #get final n of cells at the end of the simulation
+        nCells=self.administer_solution(solution=solution)
+
+        solution_fitness=self.computeFitness(nCells=nCells)
 
         return solution_fitness
 
