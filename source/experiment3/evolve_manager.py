@@ -67,7 +67,7 @@ def parallel_evolve():
         #and in accordance with the 5 iter per epoch in exp1
         
         #set simulation duration here
-        simulation_duration=100
+        simulation_duration=1000
         n_protocol_segments=int(simulation_duration/5)
 
         evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=10, num_parents_mating=num_parents_mating, id=i)
