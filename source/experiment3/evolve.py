@@ -20,6 +20,7 @@
 import numpy as np
 import time
 import os
+import csv
 import random
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import env.checks as checks
@@ -158,18 +159,18 @@ class Evolve:
         print("***************************************************\n***************************************************\n**************** GENERATION COMPLETED *************\nPROCESS ", self.id, " GENERATIONS ", ga_instance.generations_completed, " BEST SOLUTION FITNESS ", ga_instance.best_solution()[1], "\n***************************************************\n***************************************************")
 
         #pyGAD instance saving
-        ga_instance.save(filename=self.output_dir+"/"+str(ga_instance.generations_completed)+"_generation_ga_instance")
-        print("pyGAD instance saved at ", self.output_dir+"/"+str(ga_instance.generations_completed),"_generation_ga_instance")
+        ga_instance.save(filename=base_outfolder+"/"+self.output_dir+"/"+str(ga_instance.generations_completed)+"_generation_ga_instance")
+        print("pyGAD instance saved at "+base_outfolder+"/"+self.output_dir+"/"+str(ga_instance.generations_completed)+"_generation_ga_instance")
 
         #pyGAD solution fitness visualization and saving
         fitnesses=ga_instance.cal_pop_fitness()
         # CSV file to append the vector
-        fitnessTrack = self.output_dir+"/fitness_track.csv"
+        fitnessTrack = base_outfolder+"/"+self.output_dir+"/fitness_track.csv"
         # Open the file in append mode and append the vector
         with open(fitnessTrack, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(fitnesses)
-        print("Solution fitness values saved at ", self.output_dir,"/fitness_track.csv")
+        print("Solution fitness values saved at "+base_outfolder+"/"+self.output_dir+"/fitness_track.csv")
         
     
     def get_infos(self):
@@ -201,7 +202,7 @@ class Evolve:
         #setup the environment savings
         self.env.save_performance([])
         
-        self.output_dir = self.env.output_dir+"_"+str(self.num_generations)+"_"+str(self.num_parents_mating)
+        self.output_dir = self.env.output_dir+"_"+str(self.sol_per_pop)+"_"+str(self.num_parents_mating)
         
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
