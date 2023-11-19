@@ -77,7 +77,7 @@ class Evolve:
     #a function to support the fitness_func()
     #in simulating the administration of the solution
     #leveraging on the environment instance
-    def administer_solution(self, solution):
+    def administer_solution(self, solution, sol_idx):
 
         # reset environment
         self.env.reset()
@@ -99,7 +99,7 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
-        print("Administering solution:\n", solution)
+        print("Process ", self.id, " administering solution:", solution)
         #print("The solution is: ", protocol)
         
         for j in range(starting_epoch,epochs):
@@ -118,10 +118,11 @@ class Evolve:
             axis=random.choice(['X','Y'])
            
             self.env.step([axis, comprForce])
+            #print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimuli of value ", comprForce, " for ", self.env.iters, " simulation steps")
 
         #getting the final n of cells at the end of the simulation
         nCells = self.env.get_performance()
-        print("Protocol administration made ", nCells, " grow!")
+        print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, " grow!")
 
         return nCells
 
@@ -144,33 +145,32 @@ class Evolve:
 
         #use solution as a protocol and administer it to the env
         #get final n of cells at the end of the simulation
-        nCells=self.administer_solution(solution=solution)
+        nCells=self.administer_solution(solution=solution, sol_idx=sol_idx)
 
         solution_fitness=self.computeFitness(nCells=nCells)
         
-        print("Fitness for solution ", sol_idx, " is ", solution_fitness)
+        print("Process ", self.id, " generation ", str(ga_instance.generations_completed), " solution ", sol_idx, " has fitness ", solution_fitness)
 
         return solution_fitness
 
     # pygad method to print stats at every generation
     def on_generation(self, ga_instance):
-        print(f"Generation = {ga_instance.generations_completed}")
-        print(f"Fitness    = {ga_instance.best_solution()[1]}")
-        
+        print("***************************************************\n***************************************************\n**************** GENERATION COMPLETED *************\nPROCESS ", self.id, " GENERATIONS ", ga_instance.generations_completed, " BEST SOLUTION FITNESS ", ga_instance.best_solution()[1], "\n***************************************************\n***************************************************")
+
         #pyGAD instance saving
-        ga_instance.save(filename=output_dir+str(ga_instance.generations_completed)+"_generation_ga_instance")
-        
+        ga_instance.save(filename=self.output_dir+"/"+str(ga_instance.generations_completed)+"_generation_ga_instance")
+        print("pyGAD instance saved at ", self.output_dir+"/"+str(ga_instance.generations_completed),"_generation_ga_instance")
+
         #pyGAD solution fitness visualization and saving
         fitnesses=ga_instance.cal_pop_fitness()
-        
         # CSV file to append the vector
-        fitnessTrack = output_dir+"/fitness_track.csv"
-
+        fitnessTrack = self.output_dir+"/fitness_track.csv"
         # Open the file in append mode and append the vector
         with open(fitnessTrack, 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(fitnesses)
-
+        print("Solution fitness values saved at ", self.output_dir,"/fitness_track.csv")
+        
     
     def get_infos(self):
         strings = [""]
@@ -201,12 +201,12 @@ class Evolve:
         #setup the environment savings
         self.env.save_performance([])
         
-        output_dir = self.env.output_dir+"_"+str(self.num_generations)+"_"+str(self.num_parents_mating)
+        self.output_dir = self.env.output_dir+"_"+str(self.num_generations)+"_"+str(self.num_parents_mating)
         
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
-        if not os.path.exists(base_outfolder+"/"+output_dir):
-            os.makedirs(base_outfolder+"/"+output_dir)
+        if not os.path.exists(base_outfolder+"/"+self.output_dir):
+            os.makedirs(base_outfolder+"/"+self.output_dir)
 
         #initializing ga instance
         ga_instance = pygad.GA(num_generations=self.num_generations,

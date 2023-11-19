@@ -62,10 +62,10 @@ def parallel_evolve():
         
         #setting simulation duration to 500 time steps
         #protocol segments lasting 5 iters
-        # be careful, with percentage of mutated genes of 10% and 10 genes(es sim duration 500, protocol segments 5) it yields a warning that 0 genes get mutated 
+        # be careful, with percentage of mutated genes of 10% and 10 genes (eg, sim duration 500, protocol segments 5) it yields a warning that 0 genes get mutated 
         # selecting parameters to have more than 10 genes
         #and in accordance with the 5 iter per epoch in exp1
-        evolve = Evolve(envs[i], simulation_duration=50, n_protocol_segments=10, sol_per_pop=initial_population, num_generations=10, num_parents_mating=num_parents_mating, id=i)
+        evolve = Evolve(envs[i], simulation_duration=10, n_protocol_segments=2, sol_per_pop=initial_population, num_generations=10, num_parents_mating=num_parents_mating, id=i)
         print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", num_parents_mating, " parents mating")
         proc = Process(target=evolve.evolve, args=[5, True, recv])
         proc.start()
