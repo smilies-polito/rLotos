@@ -79,7 +79,7 @@ class Evolve:
     #in simulating the administration of the solution
     #leveraging on the environment instance
     def administer_solution(self, solution, sol_idx):
-
+        
         # reset environment
         self.env.reset()
         
@@ -118,12 +118,16 @@ class Evolve:
 
             axis=random.choice(['X','Y'])
            
+            print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimulus of value ", comprForce, " for ", self.env.iters, " simulation steps")
+            
             self.env.step([axis, comprForce])
-            #print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimuli of value ", comprForce, " for ", self.env.iters, " simulation steps")
+
+            #printing n of cells after protocol segment
+            print("N of cells after protocol segment: ", self.env.get_performance())
 
         #getting the final n of cells at the end of the simulation
         nCells = self.env.get_performance()
-        print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, " grow!")
+        print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!")
 
         return nCells
 
@@ -172,6 +176,14 @@ class Evolve:
             writer.writerow(fitnesses)
         print("Solution fitness values saved at "+base_outfolder+"/"+self.output_dir+"/fitness_track.csv")
         
+        #computing generation times
+        generation_t_exec = time.time()
+        generation_t_cpu = time.process_time()
+
+        with open(base_outfolder + '/' + self.output_dir + '/timesLog.csv', 'a+') as f:                  
+            f.write(str(ga_instance.generations_completed)+","+str(generation_t_exec)+','+str(generation_t_cpu)+"\n")
+
+
     
     def get_infos(self):
         strings = [""]
@@ -193,8 +205,6 @@ class Evolve:
         return strings
 
     def evolve(self, save_every=10, verbose=True, recv=None):
-        
-        #TODO: substitute tf logging with pyGAD logging
 
         #check for env integrity
         checks.check_env(self.env)
@@ -208,7 +218,14 @@ class Evolve:
             os.makedirs(base_outfolder)
         if not os.path.exists(base_outfolder+"/"+self.output_dir):
             os.makedirs(base_outfolder+"/"+self.output_dir)
-
+        
+        #computing start times
+        start_t_exec = time.time()
+        start_t_cpu = time.process_time()
+       
+        with open(base_outfolder + '/' + self.output_dir + '/timesLog.csv', 'a+') as f:
+            f.write(str("Generations completed,Execution Time,CPU Time\n"))
+        
         #initializing ga instance
         ga_instance = pygad.GA(num_generations=self.num_generations,
                        num_parents_mating=self.num_parents_mating,
@@ -218,9 +235,9 @@ class Evolve:
                        num_genes=self.n_protocol_segments,
                        sol_per_pop=self.sol_per_pop,
                        fitness_func=self.fitness_func,
-                       on_generation=self.on_generation,
-                       save_best_solutions=True,
-                       save_solutions=True)
+                       on_generation=self.on_generation)#,
+                       #save_best_solutions=True)#,
+                       #save_solutions=True)
 
         ga_instance.run()
 

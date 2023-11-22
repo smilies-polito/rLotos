@@ -67,11 +67,11 @@ def parallel_evolve():
         #and in accordance with the 5 iter per epoch in exp1
         
         #set simulation duration here
-        simulation_duration=1000
-        protocol_segment_length=200
+        simulation_duration=250
+        protocol_segment_length=50
         n_protocol_segments=int(simulation_duration/protocol_segment_length)
 
-        evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=10, num_parents_mating=num_parents_mating, id=i)
+        evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=100, num_parents_mating=num_parents_mating, id=i)
         print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", num_parents_mating, " parents mating")
         proc = Process(target=evolve.evolve, args=[5, True, recv])
         proc.start()
