@@ -121,9 +121,11 @@ class PalacellEnv():
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
     cell_num = vki.read_cell_num("output/"+self.output_file+"_final_cell")
+    print("Cell_num",cell_num)
     if cell_num>self.best_cell_num:
       self.best_cell_num = cell_num
       self.performance_updated = True
+    print("best_cell_num", self.best_cell_num)
     reward = cell_num - self.last_cell_num
     self.epoch_cell_increments.append(reward)
     self.last_cell_num = cell_num
@@ -171,7 +173,7 @@ class PalacellEnv():
     return True
 
   def get_performance(self):
-    return self.performance_indexes
+    return self.last_cell_num#elf.performance_indexes
 
   def configure(self, filePath, num_iter=5, axis='X', compr_force=0.0, export_step='0', init='0', initialPath = ' ', initialWallPath = ' ', initial_position = [200,200], finalPath = 'chem_1-'):
     root = ET.Element('parameters')
