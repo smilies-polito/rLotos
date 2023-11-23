@@ -27,8 +27,8 @@ from xvfbwrapper import Xvfb
 
 #Values of initial population numerosity are set based on values from the documentation
 #number of parents mating are chose to be lower or equal to the total populations generating different degrees of elitism
-initial_population_list = [10, 20]
-num_parents_mating_list = [2, 5]
+initial_population_list = [5, 10, 20]
+num_parents_mating_list = [1, 2]
 
 base_outfolder = "../../results"
 
@@ -67,8 +67,8 @@ def parallel_evolve():
         #and in accordance with the 5 iter per epoch in exp1
         
         #set simulation duration here
-        simulation_duration=250
-        protocol_segment_length=50
+        simulation_duration=2000
+        protocol_segment_length=200
         n_protocol_segments=int(simulation_duration/protocol_segment_length)
 
         evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=100, num_parents_mating=num_parents_mating, id=i)

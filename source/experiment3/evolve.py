@@ -100,25 +100,31 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
-        print("Process ", self.id, " administering solution:", solution)
-        #print("The solution is: ", protocol)
+        print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution))
         
-        for j in range(starting_epoch,epochs):
+
+                
+        # each segment is composed by 2 genes
+        # the first is for comprForce
+        # the second for axis
+        for j in range(starting_epoch,epochs, 2):
             
             # j selects the protocol segment
             # for each segment a comprForce level
-            #TODO: integrate also axis
-            #axis=protocol[j][0]
-            comprForce=protocol[j]#[1]
+            # and an axis level (0 -> "X", 1 -> "Y"))
+            comprForce=protocol[j]
+            axis=protocol[j+1]
+            if axis == 0:
+                axis="X"
+            elif axis == 1:
+                axis = "Y"
+
 
             #for iters simulation steps, administering
-            #-generated comprForce stimuli 
-            #axis value is generated randomly for each segment
-            #TODO: evolve also axis value
+            # - generated comprForce stimuli 
+            # - generated axis value
 
-            axis=random.choice(['X','Y'])
-           
-            print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimulus of value ", comprForce, " for ", self.env.iters, " simulation steps")
+            print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimulus of value ", comprForce, " on the ", axis, " axis for ", self.env.iters, " simulation steps")
             
             self.env.step([axis, comprForce])
 
@@ -226,16 +232,33 @@ class Evolve:
         with open(base_outfolder + '/' + self.output_dir + '/timesLog.csv', 'a+') as f:
             f.write(str("Generations completed,Execution Time,CPU Time\n"))
         
+
+        #setting the gene space for each gene
+        gene_space=[]
+
+        for s in range(self.n_protocol_segments):
+            
+            #for each protocol segment, appending two sublists:
+            #the first for the comprForce stimulus range, floats from 0.0 to 10.0
+            #the second for the compression axis, either 1 or 0 as ints to be translated in "X" and "Y"
+            gene_space.append([0.0,10.0])
+            gene_space.append([0,1])
+
+        #setting n of genes as n_protocol_segments*2
+        #since each segment has both comprForce and axis as genes
+        num_genes=self.n_protocol_segments*2
+
         #initializing ga instance
         ga_instance = pygad.GA(num_generations=self.num_generations,
-                       num_parents_mating=self.num_parents_mating,
-                       #initial_population=self.initial_population,
                        init_range_low=0,
                        init_range_high=10,
-                       num_genes=self.n_protocol_segments,
+                       num_genes=num_genes,
+                       num_parents_mating=self.num_parents_mating,
                        sol_per_pop=self.sol_per_pop,
                        fitness_func=self.fitness_func,
-                       on_generation=self.on_generation)#,
+                       on_generation=self.on_generation,
+                       mutation_percent_genes=40,
+                       gene_space=gene_space)
                        #save_best_solutions=True)#,
                        #save_solutions=True)
 
@@ -287,4 +310,4 @@ class Evolve:
 
         return random_protocol
 
-        """
+"""
