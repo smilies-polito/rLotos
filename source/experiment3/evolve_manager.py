@@ -64,14 +64,14 @@ def parallel_evolve():
     for i, (initial_population, protocol_segment_length) in enumerate(combs):
         recv, send = Pipe()
         
-        #setting simulation duration to 500 time steps
-        #protocol segments lasting 5 iters
+        #setting simulation duration to 3400 time steps
+        #protocol segments lasting n iters
         # be careful, with percentage of mutated genes of 10% and 10 genes (eg, sim duration 500, protocol segments 5) it yields a warning that 0 genes get mutated 
         # selecting parameters to have more than 10 genes
         #and in accordance with the 5 iter per epoch in exp1
         
         #set simulation duration
-        simulation_duration=34000
+        simulation_duration=3400
         n_protocol_segments=int(simulation_duration/protocol_segment_length)
 
         evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=100, num_parents_mating=num_parents_mating, id=i)

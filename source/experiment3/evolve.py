@@ -101,9 +101,11 @@ class Evolve:
         protocol = solution
 
         print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution))
-        
-
                 
+
+        #initialize cell increments list
+        cellIncrements=[]
+
         # each segment is composed by 2 genes
         # the first is for comprForce
         # the second for axis
@@ -119,20 +121,36 @@ class Evolve:
             elif axis == 1:
                 axis = "Y"
 
-
             #for iters simulation steps, administering
             # - generated comprForce stimuli 
             # - generated axis value
 
             print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimulus of value ", comprForce, " on the ", axis, " axis for ", self.env.iters, " simulation steps")
             
+            #compute nCells before step
+            nCells_before=self.env.get_performance()
+
             self.env.step([axis, comprForce])
 
+            #compute nCells after step
+            nCells_after=self.env.get_performance()
+
+            increment = nCells_after-nCells_before
+            
+            #append increment to cellIncrements list
+            cellIncrements.append(increment)
+
             #printing n of cells after protocol segment
-            print("N of cells after protocol segment: ", self.env.get_performance())
+            print("N of cells before and after protocol segment: ",nCells_before, nCells_after, "increment:", increment)
 
         #getting the final n of cells at the end of the simulation
         nCells = self.env.get_performance()
+
+        # save everything - solution, cell increments, solution fitness
+        with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
+            f.write(" ,"+str(sol_idx)+","+";".join(str(s) for s in solution)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+"\n")
+
+
         print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!")
 
         return nCells
@@ -174,20 +192,26 @@ class Evolve:
 
         #pyGAD solution fitness visualization and saving
         fitnesses=ga_instance.cal_pop_fitness()
+        
         # CSV file to append the vector
         fitnessTrack = base_outfolder+"/"+self.output_dir+"/fitness_track.csv"
-        # Open the file in append mode and append the vector
-        with open(fitnessTrack, 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(fitnesses)
+        # saving solution fitnesses
+        with open(fitnessTrack, 'a+') as f:
+            f.write(str(ga_instance.generations_completed)+","+fitnesses+"\n")
+
         print("Solution fitness values saved at "+base_outfolder+"/"+self.output_dir+"/fitness_track.csv")
         
         #computing generation times
         generation_t_exec = time.time()
         generation_t_cpu = time.process_time()
 
+        # saving times
         with open(base_outfolder + '/' + self.output_dir + '/timesLog.csv', 'a+') as f:                  
             f.write(str(ga_instance.generations_completed)+","+str(generation_t_exec)+','+str(generation_t_cpu)+"\n")
+        
+        # save everything - generation
+        with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
+            f.write(str(ga_instance.generations_completed)+", , , , \n")
 
 
     
@@ -218,7 +242,8 @@ class Evolve:
         #setup the environment savings
         self.env.save_performance([])
         
-        self.output_dir = self.env.output_dir+"_"+str(self.sol_per_pop)+"_"+str(self.num_parents_mating)
+        self.output_dir = self.env.output_dir+"_"+str(self.env.iters)
+        #self.output_dir = self.env.output_dir+"_"+str(self.sol_per_pop)+"_"+str(self.num_parents_mating)
         
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
@@ -228,10 +253,19 @@ class Evolve:
         #computing start times
         start_t_exec = time.time()
         start_t_cpu = time.process_time()
-       
+        
+        #setting up file to track fitnesses
+        with open(base_outfolder+"/"+self.output_dir+"/fitness_track.csv", "a+") as f:
+            #header has as many fields as the population numerosity
+            f.write("Generations completed\n")#+","+str(n for n in range(self.sol_per_pop)))
+
+        #setting up file to track times
         with open(base_outfolder + '/' + self.output_dir + '/timesLog.csv', 'a+') as f:
             f.write(str("Generations completed,Execution Time,CPU Time\n"))
         
+        #setting up file to save everything - generation, solution, cell increments, solution fitness
+        with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
+            f.write("Generations completed, Solution index, Solution, Cell increments, Fitness\n")
 
         #setting the gene space for each gene
         gene_space=[]
