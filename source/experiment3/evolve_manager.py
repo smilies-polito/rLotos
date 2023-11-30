@@ -38,9 +38,6 @@ base_outfolder = "../../results"
 
 def parallel_evolve():
 
-    #set when loading previous state
-    starting_epoch = 0
-
     envs = []
     evolutions = []
 
@@ -53,7 +50,7 @@ def parallel_evolve():
         env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population)+'_'+str(protocol_segment_length)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(protocol_segment_length)+'-',
             output_dir='experiment3/new_palacell_out', max_iterations=3400)   
          
-        print("Creating environemnt ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+        print("Creating environment ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
 
         envs.append(env)
 
@@ -75,7 +72,7 @@ def parallel_evolve():
         n_protocol_segments=int(simulation_duration/protocol_segment_length)
 
         evolve = Evolve(envs[i], simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=100, num_parents_mating=num_parents_mating, id=i)
-        print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+        print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")   
         proc = Process(target=evolve.evolve, args=[5, True, recv])
         proc.start()
         evolutions.append(evolve)
@@ -104,9 +101,28 @@ def parallel_evolve():
             print("insert a valid index!")
             print(e)
 
+def single_evolve(id, protocol_segment_length, initial_population, num_parents_mating, num_generations=100, simulation_duration=3400, restart=False, restart_epoch=None):
+
+    env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population)+'_'+str(protocol_segment_length)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(protocol_segment_length)+'-', output_dir='experiment3/new_palacell_out', max_iterations=3400)   
+         
+    print("Creating environment ", id, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+
+    #set simulation duration
+    simulation_duration=simulation_duration
+    n_protocol_segments=int(simulation_duration/protocol_segment_length)
+    
+    evolve = Evolve(env, simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=num_generations, num_parents_mating=num_parents_mating, id=id)
+    print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+    
+    evolve.evolve(save_every=5, verbose=True, recv=None, restart=restart, restart_epoch=None)  
+
+
 if __name__=='__main__':
     
     vdisplay = Xvfb()
     vdisplay.start()
-    parallel_evolve()
+    #parallel_evolve()
+    
+    #relaunching a process with id 0, protocol_segment_length 200, initial_population 8, num_generations 40 (since it restarts from 60), simulation_duration=3400,restart=True, restart_epoch=60
+    single_evolve(id=0, protocol_segment_length=200, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
     vdisplay.stop()
