@@ -40,7 +40,7 @@ class Train:
             print(s)
         return strings
 
-    def train(self, save_every=10, verbose=True, recv=None, starting_epoch=0):
+    def train(self, save_every=10, verbose=True, recv=None, starting_epoch=0, testingMode=False):
         lr = self.lr
         gamma = self.gamma
         #use cpu if problems while testing on laptop (decomment following lines)
@@ -253,16 +253,19 @@ class Train:
                     ac_loss += actor_discrete_loss
                 ac_loss = tf.convert_to_tensor(ac_loss)
 
-                #save model if it has better  performance before changing it through backpropagation
-                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]):
+                #save model if it has better performance before changing it through backpropagation
+                # or in case of model testing (testingMode=True)
+                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]) or testingMode:
                     self.model.save_weights(base_outfolder+"/"+output_dir+"/model_at_epoch_"+str(j)+"(best).h5") 
                     np.save(base_outfolder+"/"+output_dir+"/data_to_save_at_epoch_"+str(j)+"(best)",self.env.data_to_save())
                     np.save(base_outfolder+"/"+output_dir+"/performance_at_epoch_"+str(j)+"(best)",self.env.get_performance())
                     np.save(base_outfolder+"/"+output_dir+"/losses_at_epoch_"+str(j)+"(best)",self.losses)
 
-                #compute gradients and backpropagate
-                grads = tape.gradient(ac_loss, self.model.trainable_variables)
-                optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                
+                if not testingMode:
+                    #compute gradients and backpropagate
+                    grads = tape.gradient(ac_loss, self.model.trainable_variables)
+                    optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
 
                 '''
