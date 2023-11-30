@@ -197,7 +197,7 @@ class Evolve:
         fitnessTrack = base_outfolder+"/"+self.output_dir+"/fitness_track.csv"
         # saving solution fitnesses
         with open(fitnessTrack, 'a+') as f:
-            f.write(str(ga_instance.generations_completed)+","+fitnesses+"\n")
+            f.write(str(ga_instance.generations_completed)+","+";".join(str(f) for f in fitnesses)+"\n")
 
         print("Solution fitness values saved at "+base_outfolder+"/"+self.output_dir+"/fitness_track.csv")
         
