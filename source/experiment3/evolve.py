@@ -20,6 +20,8 @@
 import numpy as np
 import time
 import os
+import pathlib
+import re
 import csv
 import random
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -234,7 +236,7 @@ class Evolve:
             print(s)
         return strings
 
-    def evolve(self, save_every=10, verbose=True, recv=None):
+    def evolve(self, save_every=10, verbose=True, recv=None, restart=False,restart_epoch=None):
 
         #check for env integrity
         checks.check_env(self.env)
@@ -282,19 +284,31 @@ class Evolve:
         #since each segment has both comprForce and axis as genes
         num_genes=self.n_protocol_segments*2
 
-        #initializing ga instance
-        ga_instance = pygad.GA(num_generations=self.num_generations,
-                       init_range_low=0,
-                       init_range_high=10,
-                       num_genes=num_genes,
-                       num_parents_mating=self.num_parents_mating,
-                       sol_per_pop=self.sol_per_pop,
-                       fitness_func=self.fitness_func,
-                       on_generation=self.on_generation,
-                       mutation_percent_genes=40,
-                       gene_space=gene_space)
-                       #save_best_solutions=True)#,
-                       #save_solutions=True)
+        if not restart:
+            #initializing ga instance
+            ga_instance = pygad.GA(num_generations=self.num_generations,
+                        init_range_low=0,
+                        init_range_high=10,
+                        num_genes=num_genes,
+                        num_parents_mating=self.num_parents_mating,
+                        sol_per_pop=self.sol_per_pop,
+                        fitness_func=self.fitness_func,
+                        on_generation=self.on_generation,
+                        mutation_percent_genes=40,
+                        gene_space=gene_space)
+                        #save_best_solutions=True)#,
+                        #save_solutions=True)
+
+        else:
+            
+            #   TODO - make the selection of the latest epoch ga instance automatic based on number in filename
+            # alternative - save the last epoch with special name and overwrite at every epoch
+            #ga_instances = [f for f in pathlib.Path(str(base_outfolder)+"/"+str(self.output_dir)+"/").glob("*.pkl")]
+            #last_ga_instance=max(ga_instances, key=extract_number)
+
+            # for now, inserting epoch manually launching one process at a time
+            last_epoch=restart_epoch
+            ga_instance=pygad.load(str(base_outfolder)+"/"+str(self.output_dir)+"/"+str(last_epoch)+"_generation_ga_instance.pkl")
 
         ga_instance.run()
 
