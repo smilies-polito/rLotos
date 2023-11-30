@@ -101,20 +101,20 @@ def parallel_evolve():
             print("insert a valid index!")
             print(e)
 
-def single_evolve(id, protocol_segment_length, initial_population, num_parents_mating, num_generations=100, simulation_duration=3400, restart=False, restart_epoch=None):
+def single_evolve(idx, protocol_segment_length, initial_population, num_parents_mating, num_generations=100, simulation_duration=3400, restart=False, restart_epoch=None):
 
     env = penv.PalacellEnv(iters=3400, configuration_file='compr_'+str(initial_population)+'_'+str(protocol_segment_length)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(protocol_segment_length)+'-', output_dir='experiment3/new_palacell_out', max_iterations=3400)   
          
-    print("Creating environment ", id, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+    print("Creating environment ", idx, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
 
     #set simulation duration
     simulation_duration=simulation_duration
     n_protocol_segments=int(simulation_duration/protocol_segment_length)
     
-    evolve = Evolve(env, simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=num_generations, num_parents_mating=num_parents_mating, id=id)
-    print("Launching evolution process ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
+    evolve = Evolve(env, simulation_duration=simulation_duration, n_protocol_segments=n_protocol_segments, sol_per_pop=initial_population, num_generations=num_generations, num_parents_mating=num_parents_mating, id=idx)
+    print("Launching evolution process ", idx, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
     
-    evolve.evolve(save_every=5, verbose=True, recv=None, restart=restart, restart_epoch=None)  
+    evolve.evolve(save_every=5, verbose=True, recv=None, restart=restart, restart_epoch=restart_epoch)  
 
 
 if __name__=='__main__':
@@ -124,5 +124,9 @@ if __name__=='__main__':
     #parallel_evolve()
     
     #relaunching a process with id 0, protocol_segment_length 200, initial_population 8, num_generations 40 (since it restarts from 60), simulation_duration=3400,restart=True, restart_epoch=60
-    single_evolve(id=0, protocol_segment_length=200, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
+    single_evolve(idx=0, protocol_segment_length=200, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
+    #relaunching a process with id 1, protocol_segment_length 100, initial_population 8, num_generations 40 (since it restarts from 60), simulation_duration=3400,restart=True, restart_epoch=60
+    single_evolve(idx=1, protocol_segment_length=100, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
+    #relaunching a process with id 2, protocol_segment_length 20, initial_population 8, num_generations 87 (since it restarts from 13), simulation_duration=3400,restart=True, restart_epoch=13
+    single_evolve(idx=2, protocol_segment_length=20, initial_population=8, num_parents_mating=4, num_generations=87, simulation_duration=3400, restart=True, restart_epoch=13)
     vdisplay.stop()
