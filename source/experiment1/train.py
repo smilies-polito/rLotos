@@ -74,6 +74,7 @@ class Train:
 
         output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)
 
+        # creating testing subfolder for testing results
         if testingMode:
             output_dir = output_dir+"/testing"
             
