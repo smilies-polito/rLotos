@@ -77,7 +77,7 @@ class Train:
         # creating testing subfolder for testing results
         if testingMode:
             output_dir = output_dir+"/testing"
-            
+
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
         if not os.path.exists(base_outfolder+"/"+output_dir):
@@ -133,6 +133,13 @@ class Train:
                         msg = recv.recv()
                         if msg=='info':
                             self.get_infos()
+                    
+                    if testingMode:
+                        print("TESTING MODE")
+                        print("Iteration ", iter, "of", iterations, "total iterations")
+                        
+                        self.get_infos()
+                    
                     '''
                     obtain actions and generate log probs
                     '''
