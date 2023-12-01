@@ -308,7 +308,9 @@ class Evolve:
 
             # for now, inserting epoch manually launching one process at a time
             last_epoch=restart_epoch
-            ga_instance=pygad.load(str(base_outfolder)+"/"+str(self.output_dir)+"/"+str(last_epoch)+"_generation_ga_instance.pkl")
+
+            #load() requires to not put the .pkl extension in the filename
+            ga_instance=pygad.load(str(base_outfolder)+"/"+str(self.output_dir)+"/"+str(last_epoch)+"_generation_ga_instance")
 
         ga_instance.run()
 
