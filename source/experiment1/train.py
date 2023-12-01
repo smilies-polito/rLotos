@@ -73,6 +73,10 @@ class Train:
         iterations = self.env.iterations
 
         output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)
+
+        if testingMode:
+            output_dir = output_dir+"/testing"
+            
         if not os.path.exists(base_outfolder):
             os.makedirs(base_outfolder)
         if not os.path.exists(base_outfolder+"/"+output_dir):
