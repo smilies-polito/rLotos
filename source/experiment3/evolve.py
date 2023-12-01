@@ -275,9 +275,9 @@ class Evolve:
         for s in range(self.n_protocol_segments):
             
             #for each protocol segment, appending two sublists:
-            #the first for the comprForce stimulus range, floats from 0.0 to 10.0
-            #the second for the compression axis, either 1 or 0 as ints to be translated in "X" and "Y"
-            gene_space.append([0.0,10.0])
+            #the first for the comprForce stimulus range, floats from 0.0 to 10.0, as a dictionary of lower and upper bounds, and the step for range construction
+            #the second for the compression axis, either 1 or 0, as int values, to be translated in "X" and "Y"
+            gene_space.append({'low': 0.0, 'high': 10.0, 'step': 0.01}) # generating a gene space of 1000 values
             gene_space.append([0,1])
 
         #setting n of genes as n_protocol_segments*2
@@ -294,7 +294,9 @@ class Evolve:
                         sol_per_pop=self.sol_per_pop,
                         fitness_func=self.fitness_func,
                         on_generation=self.on_generation,
-                        mutation_percent_genes=40,
+                        #mutation_percent_genes=40, - defaulting to 10%
+                        mutation_type="random",
+                        mutation_by_replacement=True,
                         gene_space=gene_space)
                         #save_best_solutions=True)#,
                         #save_solutions=True)
@@ -311,51 +313,3 @@ class Evolve:
             ga_instance=pygad.load(str(base_outfolder)+"/"+str(self.output_dir)+"/"+str(last_epoch)+"_generation_ga_instance.pkl")
 
         ga_instance.run()
-
-"""
-    Function stubs to manage more protocol structural complexity in the future (or with other libraries)
-
-    # defines stimuli types and ranges
-    # returns dictionary of stimuli names (keys) and ranges (arrays)
-    def define_stimuli(self, names, ranges):
-        
-        #TODO: generate stimuli ranges, link them to names
-        stimuli = ""
-
-        return stimuli
-
-    # generates a pool of n initial protocols 
-    # returns a list of arrays
-    def generate_initial_protocols(self, n_protocols):
-
-        #generate arrays with shape s x d and random values in relevant ranges
-        #s -> stimuli (es: compression level, compression axis)
-        #d -> duration (es: 3400 simulation steps)
-
-        #TODO: for each stimulus in stimuli dict, generate a random value from range
-        # for each simulation step
-
-        initial_protocols = []
-        for p in range(n_protocols):
-            initial_protocols.append(self.generate_random_protocol)
-
-        return initial_protocols
-    
-    # generates a protocol with random stimuli values
-    # duration: int n of simulation steps for protocol duration
-    # stimuli: dictionary of stimuli names (keys) and ranges (arrays)
-    # returns a list of arrays
-    def generate_random_protocol(self, duration, stimuli): - focusing on comprForce only for now
-
-        #generate arrays with shape s x d and random values in relevant ranges
-        #s -> stimuli (es: compression level, compression axis)
-        #d -> duration (es: 3400 simulation steps)
-
-        #TODO: for each stimulus in stimuli dict, generate a random value from range
-        # for each simulation step
-
-        random_protocol = ""
-
-        return random_protocol
-
-"""
