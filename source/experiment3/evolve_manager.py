@@ -121,12 +121,12 @@ if __name__=='__main__':
     
     vdisplay = Xvfb()
     vdisplay.start()
-    #parallel_evolve()
+    parallel_evolve()
     
     #relaunching a process with id 0, protocol_segment_length 200, initial_population 8, num_generations 40 (since it restarts from 60), simulation_duration=3400,restart=True, restart_epoch=60
-    single_evolve(idx=0, protocol_segment_length=200, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
+    #single_evolve(idx=0, protocol_segment_length=200, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
     #relaunching a process with id 1, protocol_segment_length 100, initial_population 8, num_generations 40 (since it restarts from 60), simulation_duration=3400,restart=True, restart_epoch=60
-    single_evolve(idx=1, protocol_segment_length=100, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
+    #single_evolve(idx=1, protocol_segment_length=100, initial_population=8, num_parents_mating=4, num_generations=40, simulation_duration=3400, restart=True, restart_epoch=60)
     #relaunching a process with id 2, protocol_segment_length 20, initial_population 8, num_generations 87 (since it restarts from 13), simulation_duration=3400,restart=True, restart_epoch=13
-    single_evolve(idx=2, protocol_segment_length=20, initial_population=8, num_parents_mating=4, num_generations=87, simulation_duration=3400, restart=True, restart_epoch=13)
+    #single_evolve(idx=2, protocol_segment_length=20, initial_population=8, num_parents_mating=4, num_generations=87, simulation_duration=3400, restart=True, restart_epoch=13)
     vdisplay.stop()
