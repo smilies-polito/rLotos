@@ -277,7 +277,7 @@ class Evolve:
             #for each protocol segment, appending two sublists:
             #the first for the comprForce stimulus range, floats from 0.0 to 10.0, as a dictionary of lower and upper bounds, and the step for range construction
             #the second for the compression axis, either 1 or 0, as int values, to be translated in "X" and "Y"
-            gene_space.append({'low': 0.0, 'high': 1.5, 'step': 0.01}) # generating gene space
+            gene_space.append({'low': 0.0, 'high': 1.0}) # generating gene space
             gene_space.append([0,1])
 
         #setting n of genes as n_protocol_segments*2
