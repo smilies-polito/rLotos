@@ -107,6 +107,7 @@ class PalacellEnv():
     cont_action = math.floor(cont_action*(10)+0.5)/(10**3)
     action[1] = str(cont_action)
     print("Continuous action administered by step function: ", action[1])
+    env_actions=[action[0], action[1]]
     self.configure(self.configuration, self.iters, action[0], action[1], export_step=self.iters, initialPath = "output/"+self.output_file+"_final_cell.vtp",
       finalPath = self.output_file)
     try:
@@ -145,7 +146,7 @@ class PalacellEnv():
       self.cell_numbers.append(cell_num)
       self.cell_increments.append(self.epoch_cell_increments)
     os.chdir(cwd)
-    return observation, reward, done, None
+    return env_actions, observation, reward, done, None
 
   def render(self):
     cwd = os.getcwd()
