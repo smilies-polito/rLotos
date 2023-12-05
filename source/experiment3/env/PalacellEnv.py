@@ -10,7 +10,7 @@ from subprocess import DEVNULL
 import xml.etree.ElementTree as ET
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-#from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import img_to_array
 from xml.dom import minidom
 import time
 import math
@@ -97,15 +97,16 @@ class PalacellEnv():
     out['compr_history'] = self.compr_history
     return out
 
-  #removing the image-to-array conversion to avoid tensorflow usage
   def step(self, action):
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
 
     self.epoch_compr.append(action)
     cont_action = float(action[1])
+    print("Continuous action passed to the step function: ", cont_action)
     cont_action = math.floor(cont_action*(10)+0.5)/(10**3)
     action[1] = str(cont_action)
+    print("Continuous action administered by step function: ", action[1])
     self.configure(self.configuration, self.iters, action[0], action[1], export_step=self.iters, initialPath = "output/"+self.output_file+"_final_cell.vtp",
       finalPath = self.output_file)
     try:
@@ -116,7 +117,7 @@ class PalacellEnv():
       raise Exception(e)
 
     os.chdir(cwd)
-    observation = self.render() # img_to_array(self.render()).reshape((1,self.width,self.height,3))  #removing the image-to-array conversion to avoid tensorflow usage
+    observation = img_to_array(self.render()).reshape((1,self.width,self.height,3))  #removing the image-to-array conversion to avoid tensorflow usage
 
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
