@@ -102,7 +102,7 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
-        print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution))
+        print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution), "with ", len(protocol), "genes and ", epochs, "protocol segments")
                 
 
         #initialize cell increments list
@@ -111,7 +111,9 @@ class Evolve:
         # each segment is composed by 2 genes
         # the first is for comprForce
         # the second for axis
-        for j in range(starting_epoch,epochs, 2):
+        # at this point, the number of genes (len(protocol)) is twice the number of protocol segments (epochs)
+        # iterating over protocol length, with a step of 2, to elaborate both genes in each segment
+        for j in range(0,len(protocol), 2):
             
             # j selects the protocol segment
             # for each segment a comprForce level
@@ -127,7 +129,7 @@ class Evolve:
             # - generated comprForce stimuli 
             # - generated axis value
 
-            print("Process ", self.id, ", protocol segment ", j, ": administering a compression stimulus of value ", comprForce, " on the ", axis, " axis for ", self.env.iters, " simulation steps")
+            print("Process ", self.id, "solution ", sol_idx, "protocol segment ", str(int(j/2)),"over", str(len(protocol)), "protocol segments, genes ",j, "and", str(j+1),   "\n Administering a compression stimulus of value ", comprForce, " on the ", axis, " axis for ", self.env.iters, " simulation steps")
             
             #compute nCells before step
             nCells_before=self.env.get_performance()
@@ -277,7 +279,7 @@ class Evolve:
             #for each protocol segment, appending two sublists:
             #the first for the comprForce stimulus range, floats from 0.0 to 10.0, as a dictionary of lower and upper bounds, and the step for range construction
             #the second for the compression axis, either 1 or 0, as int values, to be translated in "X" and "Y"
-            gene_space.append({'low': 0.0, 'high': 0.1}) # generating gene space
+            gene_space.append({'low': 0.0, 'high': 5.0}) # generating gene space
             gene_space.append([0,1])
 
         #setting n of genes as n_protocol_segments*2
@@ -288,7 +290,7 @@ class Evolve:
             #initializing ga instance
             ga_instance = pygad.GA(num_generations=self.num_generations,
                         init_range_low=0.0,
-                        init_range_high=0.1,
+                        init_range_high=5.0,
                         num_genes=num_genes,
                         num_parents_mating=self.num_parents_mating,
                         sol_per_pop=self.sol_per_pop,
