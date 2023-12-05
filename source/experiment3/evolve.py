@@ -102,11 +102,13 @@ class Evolve:
         # internal lists have two elements: Axis and comprForce
         protocol = solution
 
-        print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution), "with ", len(protocol), "genes and ", epochs, "protocol segments")
-                
+        print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution), "with ", len(protocol), "genes and ", epochs, "protocol segments")   
 
         #initialize cell increments list
         cellIncrements=[]
+
+        #initialize compression history list
+        comprHistory=[]
 
         # each segment is composed by 2 genes
         # the first is for comprForce
@@ -128,13 +130,15 @@ class Evolve:
             #for iters simulation steps, administering
             # - generated comprForce stimuli 
             # - generated axis value
-
-            print("Process ", self.id, "solution ", sol_idx, "protocol segment ", str(int(j/2)),"over", str(len(protocol)), "protocol segments, genes ",j, "and", str(j+1),   "\n Administering a compression stimulus of value ", comprForce, " on the ", axis, " axis for ", self.env.iters, " simulation steps")
             
             #compute nCells before step
             nCells_before=self.env.get_performance()
 
-            self.env.step([axis, comprForce])
+            env_actions, _, _, _, _ = self.env.step([axis, comprForce])
+
+            print("Process ", self.id, "solution ", sol_idx, "protocol segment ", str(int(j/2)),"over", str(len(protocol)), "protocol segments, genes ",j, "and", str(j+1),   "\n Administering a compression stimulus of value ", env_actions[1], " on the ", env_actions[0], " axis for ", self.env.iters, " simulation steps")
+
+            comprHistory.append(env_actions)
 
             #compute nCells after step
             nCells_after=self.env.get_performance()
@@ -152,7 +156,7 @@ class Evolve:
 
         # save everything - solution, cell increments, solution fitness
         with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
-            f.write(" ,"+str(sol_idx)+","+";".join(str(s) for s in solution)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+"\n")
+            f.write(" ,"+str(sol_idx)+","+";".join(str(sublist) for sublist in comprHistory)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+"\n")
 
 
         print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!")
