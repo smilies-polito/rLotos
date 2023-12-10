@@ -26,10 +26,10 @@ import matplotlib.cm as cm
 
 
 # a function to plot the final total number of cells
-# filepath - filepath of the output .npy file
+# results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformance_final_cells(results_folder, data_file, experiment, exploration, parameterValues):
+def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration, parameterValues):
 
     if exploration != 'lr_gamma' and exploration != 'numIter':
         print('Insert valid exploration name! Either lr_gamma or numIter')
@@ -46,96 +46,22 @@ def plotPerformance_final_cells(results_folder, data_file, experiment, explorati
         plt.ylabel('Final fraction of cells inside target', fontsize=15)
     plt.legend(loc=3)
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + parameterValues + '.png')
+    plt.close()
 
-# a function to plot performance metrics - either mean or variance
-# filepathRaw - filepath of the output .npy file
+# a function to plot performance metrics - mean and variance
+# results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration 
 # metric - the metric to consider (mean or variance)
 # logScale - provides logScale visualization on the y axis if True (defaults to False)
-# combined - indicates whether twp epoch blocks must be combined (defaults to False)
-# filepath2 - file path of the raw performance metrics of the second block of epochs (needed if combined=True)
-def plotPerformance_metrics_lines(filepathRaw, experiment, exploration, metric, logScale=False, combined=False, filepath2=""):
+def plotPerformanceMetrics(results_folder, data_file, experiment, exploration, metric, parameterValues, logScale=False):
     
-    # combine data from the two epoch blocks if required
-    if combined:
-        dataRaw=concatEpochs(filepathRaw, filepath2)
-    else:
-        raw_dataRaw = pd.read_csv(filepathRaw)
-        dataRaw_T = raw_dataRaw.T
-        dataRaw_T.columns = dataRaw_T.iloc[0]
-        dataRaw = dataRaw_T[1:]
-    
-    if logScale:
-        #min and max over df
-        min=dataRaw.min().min()
-        max=dataRaw.max().max()
-        #print(min,max)
+    if exploration != 'lr_gamma' and exploration != 'numIter':
+        print('Insert valid exploration name! Either lr_gamma or numIter')
 
-        for c in dataRaw.columns:
+    data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
 
-            # min max normalization with min and max over column
-            dataRaw[c] = (dataRaw[c] - dataRaw[c].min()) / (dataRaw[c].max() - dataRaw[c].min())
-
-            # min max normalization with min and max over df
-            dataRaw[c] = (dataRaw[c] - min) / (max - min)
-
-            #log10 transformation
-            dataRaw[c] = np.log10(dataRaw[c].astype(float))
-
-    dataRaw.plot(figsize=(10, 5), fontsize=15, lw=4)
-    plt.xlabel('Window', fontsize=15)
-    
-    if logScale:
-        plt.ylabel('Log_10 of ' + metric, fontsize=15)
-    else:
-        plt.ylabel(metric, fontsize=15)
-    plt.legend(loc=3)
-    
-    if logScale:
-        plt.yscale('log')
-    
-    plt.savefig(experiment + '_' + exploration + '_' + metric + '.png')
-
-# a function to concatenate performance metrics 
-# from two subsequent blocks of epochs
-# filepath_part_1 - filepath of the first epoch block
-# filepath_part_2 - filepath of the second epoch block
-# returns the two blocks combined
-def concatEpochs(filepath_part_1, filepath_part_2):
-
-    raw_data_part_1 = pd.read_csv(filepath_part_1)
-    raw_data_part_2 = pd.read_csv(filepath_part_2)
-
-    data_part_1_T = raw_data_part_1.T
-    data_part_1_T.columns = data_part_1_T.iloc[0]
-    data_part_1_T = data_part_1_T[1:]
-
-    data_part_2_T = raw_data_part_2.T
-    data_part_2_T.columns = data_part_2_T.iloc[0]
-    data_part_2_T = data_part_2_T[1:]
-
-    data_combined = pd.concat([data_part_1_T, data_part_2_T])
-
-    return data_combined
-
-# a function to plot the final total number of cells
-# as boxplots over sliding windows of 20 epochs
-# filepathRaw - filepath of the raw performance metrics
-# experiment - indication of the experiment
-# exploration - indication of the hyperparameter exploration
-# combined - indicates whether twp epoch blocks must be combined (defaults to False)
-# filepath2 - file path of the raw performance metrics of the second block of epochs (needed if combined=True)
-def plotPerformance_raw_boxplot(filepathRaw, experiment, exploration, combined=False, filepath2=''):
-
-    # combine data from the two epoch blocks if required
-    if combined:
-        dataRaw=concatEpochs(filepathRaw, filepath2)
-    else:
-        raw_dataRaw = pd.read_csv(filepathRaw)
-        dataRaw_T = raw_dataRaw.T
-        dataRaw_T.columns = dataRaw_T.iloc[0]
-        dataRaw = dataRaw_T[1:]
+    cells = data['cell_numbers']
 
     # slice data in sliding windows of n epochs, jumping over m*10 epochs
     # n: window size
@@ -143,96 +69,85 @@ def plotPerformance_raw_boxplot(filepathRaw, experiment, exploration, combined=F
     m = 1
     n = 21 * m
     # slice position data in window-based chunks
-    movingAvg_df = [dataRaw[i:i + n] for i in range(0, len(dataRaw), 10 * m)]
+    cellsWindows = [cells[i:i + n] for i in range(0, len(cells), 10 * m)]
 
-    # generating one subplot per process, and using windows as columns.
-    # generate new dataframe list
-    # df: training process
-    # rows: epochs
-    # columns: windows
-    exp=1
-    # enforcing correspondance btween exp name and learning parameters in paper
+    metricValues=pd.DataFrame(index=range(len(cellsWindows)), columns=["Cells", "Mean", "Variance"])
     
-    #EXP 1
-    for training_name in ['lr=0.001 gamma=0.99', 'lr=0.001 gamma=0.95', 'lr=0.0001 gamma=0.99', 'lr=0.0001 gamma=0.95', 'lr=0.00001 gamma=0.99', 'lr=0.00001 gamma=0.95']:
+    for i, w in enumerate(cellsWindows):
+        metricValues["Cells"].iloc[i] = list(w)
+        metricValues["Mean"].iloc[i] = w.mean()
+        metricValues["Variance"].iloc[i] = w.var()
 
-        i=0
+    print(metricValues)
+    
+    mean = metricValues['Mean']
+    var = metricValues['Variance']
 
-        training_df = pd.DataFrame()
+    mean.plot(figsize=(10, 5), fontsize=15, lw=4)
+    plt.xlabel('Epoch', fontsize=15)
+    if experiment == '1_final_n_cells':
+        plt.ylabel('Mean of the final number of cells', fontsize=15)
+    if experiment == '2_final_fraction_cells':
+        plt.ylabel('Mean of the fraction of cells inside target', fontsize=15)
+    plt.legend(loc=3)
+    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
+    plt.close()
 
-        #print(training_name)
+    var.plot(figsize=(10, 5), fontsize=15, lw=4)
+    plt.xlabel('Epoch', fontsize=15)
+    if experiment == '1_final_n_cells':
+        plt.ylabel('Variance of the final number of cells', fontsize=15)
+    if experiment == '2_final_fraction_cells':
+        plt.ylabel('Variance of the final fraction of cells inside target', fontsize=15)
+    plt.legend(loc=3)
+    plt.savefig(results_folder+experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
+    plt.close()
 
-        for df in movingAvg_df:
-
-            name=str(i)
-            #print('series to be added\n', df[training_name])
-
-            new_col = df[training_name].reset_index(drop=True)
-
-            # each append is a new chunk corresponding to a new window
-            training_df.insert(i, name, new_col)
-            i=i+1
-            #print(training_df)
-
-        training_df = pd.DataFrame(training_df, dtype='float')
-        
-        fig, ax = plt.subplots()
-        boxplot = training_df.boxplot(fontsize=12, showmeans = True, meanline = True, figsize=(30,20))
-        plt.title('Exp'+str(exp)+ ' - ' + training_name, fontsize=20)
-        plt.ylabel('Final number of cells', fontsize=15)
-        plt.xlabel('Windows', fontsize=15)
-        plt.yticks(np.arange(250, 271, 5))
-        plt.savefig('Exp'+str(exp)+'_boxplot_'+training_name+'_'+experiment+'_'+exploration+'.png')
-        plt.close()
-        
-        exp=exp+1
+    #if logScale:
+        #TODO adapt logscale to specific columns
 
 
 # a function to plot the generated protocols at the start and end epochs
-# filepath_axis - filepath of the axis stimuli administered
-# filepath_comprForce - filepath of the comprForce stimuli administered
+# results_folder, data_file : the filepath - filepath of the output .npy file including information on axis and comprForce stimuli administered
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration 
 # start_epoch - starting epoch to consider to extract protocol
 # stop_epoch - last epoch to consider to extract protocol
-def plotProtocols(filepath_axis, filepath_comprForce, experiment, exploration, start_epoch, stop_epoch):
+def plotProtocols(results_folder, data_file, experiment, exploration, start_epoch, stop_epoch):
 
-    data_raw_axis = pd.read_csv(filepath_axis)
-    data_axis_T = data_raw_axis.T
+    if exploration != 'lr_gamma' and exploration != 'numIter':
+        print('Insert valid exploration name! Either lr_gamma or numIter')
 
-    data_comprForce = pd.read_csv(filepath_comprForce)
-    data_comprForce_T = data_comprForce.T
+    data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
 
-    data_axis_T.columns = data_axis_T.iloc[0]
-    data_comprForce_T.columns = data_comprForce.iloc[0]
+    start_epoch_name = str('epoch_' + str(start_epoch))
+    stop_epoch_name = str('epoch_' + str(stop_epoch))
 
-    start_epoch_name = str('epoch ' + str(start_epoch))
-    stop_epoch_name = str('epoch ' + str(stop_epoch))
+    protocol1=pd.DataFrame(data["compr_history"][start_epoch], columns=["axis", "comprForce"])
+    protocol2=pd.DataFrame(data["compr_history"][stop_epoch], columns=["axis", "comprForce"])
 
-    protocol_start_epoch = pd.DataFrame(np.concatenate([data_axis_T[[start_epoch_name]], data_comprForce[[start_epoch_name]]], axis=1), columns=['Axis', 'ComprForce'])
-    protocol_start_epoch = protocol_start_epoch[1:]
-    protocol_stop_epoch = pd.DataFrame(np.concatenate([data_axis_T[[stop_epoch_name]], data_comprForce_T[[stop_epoch_name]]], axis=1), columns=['Axis', 'ComprForce'])
-    protocol_stop_epoch = protocol_stop_epoch[1:]
+    print(protocol1, protocol2)
+
+
 
     colors = {'X': 'tab:orange', 'Y': 'tab:blue'}
 
     fig, ax = plt.subplots()
-    protocol_start_epoch['indexes'] = protocol_start_epoch.index
-    protocol_start_epoch.plot(x='indexes', y='ComprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol_start_epoch['Axis'].map(colors))
-    plt.ylim([-0.001, 0.03])
-    plt.xlabel('Simulation steps', fontsize=15)
-    plt.ylabel('ComprForce', fontsize=15)
+    protocol1['indexes'] = protocol1.index
+    protocol1.plot(x='indexes', y='comprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol1['axis'].map(colors))
+    #plt.ylim([-0.001, 0.01])
+    plt.xlabel('Learning episodes', fontsize=15)
+    plt.ylabel('comprForce', fontsize=15)
     plt.legend(loc='upper right')
-    plt.savefig(experiment + '_' + exploration + '_' + start_epoch_name + '_protocol.png')
+    plt.savefig(results_folder+experiment + '_' + exploration + "_" + start_epoch_name + '_protocol.png')
 
-    protocol_stop_epoch['indexes'] = protocol_stop_epoch.index
-    protocol_stop_epoch.plot(x='indexes', y='ComprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol_stop_epoch['Axis'].map(colors))
-    plt.ylim([-0.001, 0.03])
-    plt.ylim([-0.001, 0.03])
-    plt.xlabel('Simulation steps', fontsize=15)
-    plt.ylabel('ComprForce', fontsize=15)
+    protocol2['indexes'] = protocol2.index
+    protocol2.plot(x='indexes', y='comprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol2['axis'].map(colors))
+    #plt.ylim([-0.001, 0.01])
+    plt.xlabel('Learning episodes', fontsize=15)
+    plt.ylabel('comprForce', fontsize=15)
     plt.legend(loc='upper right')
-    plt.savefig(experiment + '_' + exploration + '_' + stop_epoch_name + '_protocol.png')
+    plt.savefig(results_folder+experiment + '_' + exploration + "_" + stop_epoch_name + '_protocol.png')
     plt.close()
 
 
@@ -249,21 +164,25 @@ if __name__ == '__main__':
 
 
             # Performance over epochs - final number of cells
-            plotPerformance_final_cells(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
+            plotPerformanceCellNumber(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
 
-            exit(0)
+            
 
             # Performance over windows - final number of cells boxplots
-            plotPerformance_raw_boxplot(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma')
+            #plotPerformance_raw_boxplot(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma')
+
 
             # Performance over windows - MEAN of the final number of cells lineplot
-            plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Mean', logScale=False)
+            plotPerformanceMetrics(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Mean', logScale=False, parameterValues=lr+"_"+gamma)
+            
 
             # Performance over windows - VARIANCE of the final number of cells
-            plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Variance', logScale=True)
+            #plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Variance', logScale=True)
 
-        # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-        #plotProtocols(results_folder+"path to protocol at start", results_folder+"path to protocol at stop", 'exp1.1')
+            # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
+            for i in range(70):
+                plotProtocols(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='exp1.1', exploration='lr_gamma', start_epoch=0, stop_epoch=i)
+            exit(0)
 
     # TARGET 1 - numIters exploration
     results_folder="results/experiment1.2/"
