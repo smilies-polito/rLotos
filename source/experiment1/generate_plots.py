@@ -103,6 +103,36 @@ def plotPerformanceMetrics(results_folder, data_file, experiment, exploration, m
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
     plt.close()
 
+    cellsOverWindows=pd.DataFrame()
+    for w in range(len(metricValues)):
+        print(metricValues["Cells"][w])
+        cellsOverWindows[w]=pd.Series(metricValues["Cells"][w])
+        print(cellsOverWindows)
+
+    #TODO: make cols drop systematic when they are shorted than expected window
+    #for c in cellsOverWindows.columns:
+    #    if len(list(cellsOverWindows.loc[c].dropna()))<int(n/m):
+    #        cellsOverWindows.drop(columns=[c], axis=1)
+
+    cellsOverWindows.drop(columns=[6,7], inplace=True)
+
+
+    violin = sns.violinplot(data=cellsOverWindows, palette='turbo', inner=None, linewidth=0, saturation=0.4)
+    boxplot = sns.boxplot(data=cellsOverWindows, palette='turbo', width=0.3,
+    boxprops={'zorder': 2}, ax=violin)
+    boxplot.set_title(experiment + " - " + parameterValues)
+    boxplot.set_ylim(245, 280)
+    boxplot.set_xlabel("Windows")
+    if experiment == '1_final_n_cells':
+        boxplot.set_ylabel("Final number of cells")
+    if experiment == '2_final_fraction_cells':
+        boxplot.set_ylabel("Final fraction of cells inside target")  
+    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
+    plt.close()
+
+    
+    
+
     #if logScale:
         #TODO adapt logscale to specific columns
 
@@ -159,8 +189,8 @@ if __name__ == '__main__':
 
     epoch="70"
 
-    for lr in ["0.001", "0.0001", "1e-05"]:
-        for gamma in ["0.99", "0.95"]:
+    for lr in ["1e-05"]:#["0.001", "0.0001", "1e-05"]:
+        for gamma in ["0.95"]:#["0.99", "0.95"]:
 
 
             # Performance over epochs - final number of cells
@@ -180,9 +210,9 @@ if __name__ == '__main__':
             #plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Variance', logScale=True)
 
             # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-            for i in range(70):
+            for i in range(0, 70, 70):
                 plotProtocols(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='exp1.1', exploration='lr_gamma', start_epoch=0, stop_epoch=i)
-            exit(0)
+            
 
     # TARGET 1 - numIters exploration
     results_folder="results/experiment1.2/"
