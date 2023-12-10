@@ -26,33 +26,29 @@ import matplotlib.cm as cm
 
 
 # a function to plot the final total number of cells
-# filepath - filepath of the output csv
+# filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformance_final_cells(filepath, experiment, exploration):
-    raw_data = pd.read_csv(filepath)
-    data_T = raw_data.T
-    data_T.columns = data_T.iloc[0]
-    data_T = data_T[1:]
+def plotPerformance_final_cells(results_folder, data_file, experiment, exploration, parameterValues):
 
-    if exploration == 'lr_gamma':
-        data = data_T[['lr=0.001 gamma=0.95', 'lr=0.0001 gamma=0.95', 'lr=0.001 gamma=0.99', 'lr=0.0001 gamma=0.99']]
-    elif exploration == 'numIter':
-        data = data_T[['40 iterations/step', '50 iterations/step', '20 iterations/step']]
-    else:
-        print('Insert valid exploration name!')
+    if exploration != 'lr_gamma' and exploration != 'numIter':
+        print('Insert valid exploration name! Either lr_gamma or numIter')
 
-    data.plot(figsize=(10, 5), fontsize=15, lw=4)
+    data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
+
+    cells = data['cell_numbers']
+
+    cells.plot(figsize=(10, 5), fontsize=15, lw=4)
     plt.xlabel('Epoch', fontsize=15)
     if experiment == '1_final_n_cells':
         plt.ylabel('Final number of cells', fontsize=15)
     if experiment == '2_final_fraction_cells':
         plt.ylabel('Final fraction of cells inside target', fontsize=15)
     plt.legend(loc=3)
-    plt.savefig(experiment + '_' + exploration + '.png')
+    plt.savefig(results_folder+experiment + '_' + exploration + "_" + parameterValues + '.png')
 
 # a function to plot performance metrics - either mean or variance
-# filepathRaw - filepath of the output csv
+# filepathRaw - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration 
 # metric - the metric to consider (mean or variance)
@@ -239,129 +235,52 @@ def plotProtocols(filepath_axis, filepath_comprForce, experiment, exploration, s
     plt.savefig(experiment + '_' + exploration + '_' + stop_epoch_name + '_protocol.png')
     plt.close()
 
-# a function to plot series of heatmaps showing explored initial positions in windows
-# highlight corresponding performance
-# start from disjoint subsequent epoch series
-# fillTarget decides whether to fill the target with color intensity proportional to performance (mean) of considered window
-def plotCoordinates(filepath_positions_part_1, filepath_metric_part_1, experiment, exploration, bestExperimentName, fillTarget=True, combined=False,filepath_positions_part_2="", filepath_metric_part_2=""):
-
-    if combined:
-
-        #metrics
-        data_metrics=concatEpochs(filepath_metric_part_1, filepath_metric_part_2)
-
-        #positions
-        data_positions=concatEpochs(filepath_positions_part_1, filepath_positions_part_2)
-    else:
-
-        #metrics
-        raw_metrics_data = pd.read_csv(filepath_metric_part_1)
-        raw_metrics_data_T = raw_metrics_data.T
-        raw_metrics_data_T.columns = raw_metrics_data_T.iloc[0]
-        data_metrics = raw_metrics_data_T[1:]
-
-        #positions
-        raw_positions_data = pd.read_csv(filepath_positions_part_1)
-        data_positions_T = raw_positions_data.T
-        data_positions_T.columns = data_positions_T.iloc[0]
-        data_positions = data_positions_T[1:]
-
-    # selecting performance of best experiment
-    best_experiment_performance = data_metrics[bestExperimentName]
-    best_experiment_performance.columns=[bestExperimentName]
-
-    # HEATMAPS
-    # slice data in sliding windows of n epochs, jumping over m*10 epochs
-    # n: window size
-    # m: multiplier to set the slice index right for selected n
-    m = 1
-    n = 21 * m
-    # slice position data in window-based chunks
-    list_df = [data_positions[i:i + n] for i in range(0, len(data_positions), 10 * m)]
-    #print(list_df)
-
-    # set range of relevant windows
-    # considering windows 1 - 12
-    # starting from window 1
-    # selecting df chunks from the second to two chunks before end since the last two are partial
-    # using window-1 to compute colors on performance list cmap
-    # TODO: enforce window range / performance list coherence
-    window_range = [1, 12]
-    window = window_range[0]
-
-    for chunk in list_df[window_range[0]:window_range[1]+1]:
-
-        #epoch indexes considered for computation
-        print(chunk.index)
-
-        if fillTarget:
-
-            # create colormap with performance values
-            performance_list = list(best_experiment_performance)
-            min_val, max_val = min(performance_list), max(performance_list)
-
-            # use the reds colormap that is built-in and normalize over performance values
-            norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
-            color = mpl.cm.Reds(norm(performance_list))
-
-            circle = plt.Circle((200, 250), 80, color=color[window-1], fill=True)
-            fig, ax = plt.subplots()
-            ax.set_aspect('equal')
-        else:
-            circle = plt.Circle((200, 250), 80, color='r', fill=False)
-            fig, ax = plt.subplots()
-            ax.set_aspect('equal')
-
-        fig = plt.hist2d(x=chunk['x axis'], y=chunk['y axis'], bins=[8, 8], cmap='Purples', range=[[0, 400], [0, 400]])
-        plt.title('Window ' + str(window), fontsize=30)
-        plt.xlabel('X axis', fontsize=15)
-        plt.ylabel('Y axis', fontsize=15)
-        ax.tick_params(labelsize=12)
-        ax.set_xbound(0, 400)
-        ax.set_ybound(0, 400)
-        # adding target
-        ax.add_patch(circle)
-
-        plt.savefig(str(window) + '_' + experiment + '_' + exploration + '_' +  bestExperimentName + '_heatmap_coordinates_combined.png')  # '_'+str(m)+
-        plt.close()
-
-        window = window + 1
 
 
 if __name__ == '__main__':
 
-    results_folder="../..results/experiment1.1/"
+    results_folder="results/experiment1.1/"
     # TARGET 1 - lr and gamma exploration
 
-    # Performance over epochs - final number of cells
-    plotPerformance_final_cells(results_folder+"", experiment='1_final_n_cells', exploration='lr_gamma')
+    epoch="70"
 
-    # Performance over windows - final number of cells boxplots
-    plotPerformance_raw_boxplot(results_folder+"", experiment='1_final_n_cells', exploration='lr_gamma')
+    for lr in ["0.001", "0.0001", "1e-05"]:
+        for gamma in ["0.99", "0.95"]:
 
-    # Performance over windows - MEAN of the final number of cells lineplot
-    plotPerformance_metrics_lines(results_folder+"", experiment='1_final_n_cells', exploration='lr_gamma', metric='Mean', logScale=False)
 
-    # Performance over windows - VARIANCE of the final number of cells
-    plotPerformance_metrics_lines(results_folder+"", experiment='1_final_n_cells', exploration='lr_gamma', metric='Variance', logScale=True)
+            # Performance over epochs - final number of cells
+            plotPerformance_final_cells(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
 
-    # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-    plotProtocols(results_folder+"path to protocol at start", results_folder+"path to protocol at stop", 'exp1.1')
+            exit(0)
+
+            # Performance over windows - final number of cells boxplots
+            plotPerformance_raw_boxplot(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma')
+
+            # Performance over windows - MEAN of the final number of cells lineplot
+            plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Mean', logScale=False)
+
+            # Performance over windows - VARIANCE of the final number of cells
+            plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', metric='Variance', logScale=True)
+
+        # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
+        #plotProtocols(results_folder+"path to protocol at start", results_folder+"path to protocol at stop", 'exp1.1')
 
     # TARGET 1 - numIters exploration
-    results_folder="../..results/experiment1.2/"
+    results_folder="results/experiment1.2/"
 
-    # Performance over epochs - final number of cells
-    plotPerformance_final_cells(results_folder+"", experiment='1_final_n_cells', exploration='numIter')
+    for numiter in ["20", "50", "80", "100", "200"]:
 
-    # Performance over windows - final number of cells boxplots
-    plotPerformance_raw_boxplot(results_folder+"", experiment='1_final_n_cells', exploration='lr_gamma')
+        # Performance over epochs - final number of cells
+        plotPerformance_final_cells(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='numIter')
 
-    # Performance over windows - MEAN of the final number of cells
-    plotPerformance_metrics_lines(results_folder+"", 'Mean of the final number of cells')
+        # Performance over windows - final number of cells boxplots
+        plotPerformance_raw_boxplot(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='numIter')
 
-    # Performance over windows - VARIANCE of the final number of cells
-    plotPerformance_metrics_lines(results_folder+"", 'Variance of the final number of cells')
+        # Performance over windows - MEAN of the final number of cells
+        plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='numIter', metric='Mean', logScale=False)
+
+        # Performance over windows - VARIANCE of the final number of cells
+        plotPerformance_metrics_lines(results_folder+"new_palacell_out_"+lr+"_"+gamma+"/data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='numIter', metric='Variance', logScale=False)
 
     # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-    plotProtocols(results_folder+"path to protocol at start", results_folder+"path to protocol at stop", 'exp1.2')
+    #plotProtocols(results_folder+"path to protocol at start", results_folder+"path to protocol at stop", 'exp1.2')
