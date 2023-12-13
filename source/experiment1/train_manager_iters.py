@@ -91,7 +91,7 @@ def single_train(idx, iters, starting_epoch, max_epochs, lr=0.0001, gamma = 0.99
     starting_epoch = starting_epoch
 
     env = penv.PalacellEnv(iters=iters, configuration_file='compr_'+str(lr)+'_'+str(gamma)+'.xml', output_file='chem_'+str(lr)+'_'+str(gamma)+'-',
-            output_dir='experiment1.2/new_palacell_out', max_iterations=3400)
+         output_dir='experiment1.2/new_palacell_out_iters_'+str(iters), max_iterations=3400)
     
     #max epochs
     env.epochs = max_epochs
@@ -100,17 +100,17 @@ def single_train(idx, iters, starting_epoch, max_epochs, lr=0.0001, gamma = 0.99
     #the first block refers to any data file produced during the training
     #the second block refers to data files produced after the last possible epoch, if the previous training has been completed
     #current_env = str(lr)+'_'+str(gamma)
-    current_env = 'iters_'+str(iters)+'_'+str(lr)+'_'+str(gamma)
+    current_env = str(lr)+'_'+str(gamma)
 
     #set to load previous state
-    #env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/model_at_epoch_"+str(starting_epoch)+".h5"
-    #env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/data_to_save_at_epoch_"+str(starting_epoch)
-    #env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/performance_at_epoch_"+str(starting_epoch)
+    env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/model_at_epoch_"+str(starting_epoch)+".h5"
+    env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/data_to_save_at_epoch_"+str(starting_epoch)
+    env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/performance_at_epoch_"+str(starting_epoch)
 
-    if testingMode:
-        env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_model.h5"
-        env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_data_to_save"
-        env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_performance"
+    #if testingMode:
+    #    env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_model.h5"
+    #    env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_data_to_save"
+    #    env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_performance"
 
     train = Train(env, lr, gamma, idx)
     train.train(5, False, recv=None, starting_epoch=starting_epoch, testingMode=testingMode)
@@ -122,7 +122,20 @@ if __name__=='__main__':
     
     #parallel_train()
 
+   
     #single process to test ANN performance with iters 200, starting epoch 70 and max epochs 100 (so we have 30 epochs for testing)
-    single_train(idx=0, iters=200, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
+    #single_train(idx=0, iters=200, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
     
+    #single process to test ANN performance with iters 100, starting epoch 70 and max epochs 100 (so we have 30 epochs for testing)
+    #single_train(idx=0, iters=100, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
+
+    #single process to test ANN performance with iters 50, starting epoch 70 and max epochs 100 (so we have 30 epochs for testing)
+    #single_train(idx=0, iters=50, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
+
+    #single process to test ANN performance with iters 40, starting epoch 70 and max epochs 100 (so we have 30 epochs for testing)
+    #single_train(idx=0, iters=40, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
+
+    #single process to test ANN performance with iters 20, starting epoch 70 and max epochs 100 (so we have 30 epochs for testing)
+    single_train(idx=1, iters=20, starting_epoch=70, max_epochs=100, lr=0.0001, gamma = 0.99, testingMode=True)
+
     vdisplay.stop()

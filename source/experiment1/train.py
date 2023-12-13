@@ -72,16 +72,23 @@ class Train:
         epochs = self.env.epochs
         iterations = self.env.iterations
 
-        output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)
+        output_dir = self.env.output_dir+str(lr)+"_"+str(gamma)
 
         # creating testing subfolder for testing results
         if testingMode:
-            output_dir = output_dir+"/testing"
-
-        if not os.path.exists(base_outfolder):
-            os.makedirs(base_outfolder)
-        if not os.path.exists(base_outfolder+"/"+output_dir):
-            os.makedirs(base_outfolder+"/"+output_dir)
+            print("TESTING MODE SET UP")
+            output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)+"/testing"
+            print("Checking or creating folder to store testing results at: ", output_dir)
+            if not os.path.exists(base_outfolder):
+                os.makedirs(base_outfolder)
+            if not os.path.exists(base_outfolder+"/"+output_dir):
+                os.makedirs(base_outfolder+"/"+output_dir)
+                print("created folder at "+base_outfolder+"/"+output_dir)
+        else:
+            if not os.path.exists(base_outfolder):
+                os.makedirs(base_outfolder)
+            if not os.path.exists(base_outfolder+"/"+output_dir):
+                os.makedirs(base_outfolder+"/"+output_dir)
 
         self.model.build((1,self.env.width,self.env.height,self.env.channels))
         self.model.summary()
@@ -136,6 +143,7 @@ class Train:
                     
                     if testingMode:
                         print("TESTING MODE")
+                        print("Testing epoch", j)
                         print("Iteration ", iter, "of", iterations, "total iterations")
                         
                         self.get_infos()
@@ -153,9 +161,12 @@ class Train:
 
 
                     
+                    
                     discrete_actions, continue_actions, normals, value = self.model(observation)
+                    
+                    # print("CONTINUE ACTION GENERATED: ")
+                    # tf.print(continue_actions)
 
-                    print("CONTINUE ACTIONS GENERATED: ", continue_actions)
 
                     values.append(value[0][0])
 
@@ -177,7 +188,9 @@ class Train:
                             temp_cont.append(tf.clip_by_value(continue_actions[i],self.env.range_continue[i][0],self.env.range_continue[i][1]))
                         
                         continue_actions = tf.convert_to_tensor(temp_cont)
-
+                    
+                    # print("CONTINUE ACTION GENERATED AFTER CLIPPING: ")
+                    tf.print(continue_actions)
                     
                     '''
                     compute action generation total times
