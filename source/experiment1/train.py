@@ -154,6 +154,9 @@ class Train:
 
                     
                     discrete_actions, continue_actions, normals, value = self.model(observation)
+
+                    print("CONTINUE ACTIONS GENERATED: ", continue_actions)
+
                     values.append(value[0][0])
 
                     #discrete actions
