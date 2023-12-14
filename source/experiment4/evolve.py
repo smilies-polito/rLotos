@@ -107,6 +107,9 @@ class Evolve:
         #initialize cell increments list
         cellIncrements=[]
 
+        #initialize normFrac increments list
+        normFracIncrements=[]
+
         #initialize compression history list
         comprHistory=[]
 
@@ -119,7 +122,9 @@ class Evolve:
         xCoord=protocol[0]
         yCoord=protocol[1]
 
-        self.env.configure(initial_position=np.array(xCoord, yCoord))
+        self.env.configure(self.env.configuration, self.env.iters, export_step=self.env.iters, initialPath = "output/"+self.env.output_file+"_final_cell.vtp",
+        finalPath = self.env.output_file, initial_position=np.array(xCoord, yCoord))
+
         print("Process ", self.id, "solution ", sol_idx, "setting initial coordinates x: ", xCoord, "y: ", yCoord)
 
         
@@ -148,36 +153,50 @@ class Evolve:
             # - generated axis value
             
             #compute nCells before step
-            nCells_before=self.env.get_performance()
+            nCells_before=self.env.getCellNum()
 
-            env_actions, _, _, _, _ = self.env.step([axis, comprForce])
+            #compute fraction of inside cells before step
+            normFrac_before=self.env.getNormFrac()
+
+            env_actions, _, _, _, _, _ = self.env.step([axis, comprForce])
 
             print("Process ", self.id, "solution ", sol_idx, "protocol segment ", str(int(j/2)),"over", str(len(protocol)), "protocol segments, genes ",j, "and", str(j+1),   "\n Administering a compression stimulus of value ", env_actions[1], " on the ", env_actions[0], " axis for ", self.env.iters, " simulation steps")
 
             comprHistory.append(env_actions)
 
             #compute nCells after step
-            nCells_after=self.env.get_performance()
+            nCells_after=self.env.getCellNum()
 
-            increment = nCells_after-nCells_before
+            #compute fraction of inside cells after step
+            normFrac_after=self.env.getNormFrac()
+
+            
+            incrementNCells = nCells_after-nCells_before
+            incrementNormFrac = normFrac_before - normFrac_after
             
             #append increment to cellIncrements list
-            cellIncrements.append(increment)
+            cellIncrements.append(incrementNCells)
+            normFracIncrements.append(incrementNormFrac)
 
             #printing n of cells after protocol segment
-            print("N of cells before and after protocol segment: ",nCells_before, nCells_after, "increment:", increment)
+            print("N of cells before and after protocol segment: ", nCells_before, nCells_after, "increment:", incrementNCells)
+            #printing normFrac after protocol segment
+            print("Normalized fraction of cells inside the target before and after protocol segment: ", normFrac_before, normFrac_after, "increment:", incrementNormFrac)
 
         #getting the final n of cells at the end of the simulation
-        nCells = self.env.get_performance()
+        nCells = self.env.getCellNum()
+
+        #getting the final Normalized fraction of cells inside the target at the end of the simulation
+        NormFrac = self.env.getNormFrac()
 
         # save everything - solution, cell increments, solution fitness
         with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
-            f.write(" ,"+str(sol_idx)+","+str(xCoord)+str(yCoord)+";".join(str(sublist).replace(",","|") for sublist in comprHistory)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+"\n")
+            f.write(" ,"+str(sol_idx)+","+str(xCoord)+str(yCoord)+";".join(str(sublist).replace(",","|") for sublist in comprHistory)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+str(NormFrac)+"\n")
 
 
-        print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!")
+        print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!", NormFrac, "is cells inside / n cells")
 
-        return nCells
+        return nCells, NormFrac
 
     #a function to support the fitness_func()
     #in computing the fitness of the solution
@@ -289,7 +308,7 @@ class Evolve:
         
         #setting up file to save everything - generation, solution, cell increments, solution fitness
         with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
-            f.write("Generations completed,Solution index,x,y,Solution,Cell increments,Fitness\n")
+            f.write("Generations completed,Solution index,x,y,Solution,Cell increments,Final n cells, Final Inside Fraction\n")
 
         # setting the gene space for each gene
         gene_space=[]
@@ -352,3 +371,4 @@ class Evolve:
             ga_instance=pygad.load(str(base_outfolder)+"/"+str(self.output_dir)+"/"+str(last_epoch)+"_generation_ga_instance")
 
         ga_instance.run()
+
