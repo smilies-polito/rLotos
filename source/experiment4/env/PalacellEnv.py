@@ -20,7 +20,6 @@ from multiprocessing import Process
 from multiprocessing import Pipe
 import math
 import env.vtkInterface as vki
-import palacellProlifTrain as ppt
 
 base_outfolder = "../../results"
 base_palacell_folder = "../../data/PalaCell2D/app"
@@ -67,6 +66,7 @@ class PalacellEnv():
     self.best_cell_num = 0
     self.compr_history = []
     self.epoch_compr = []
+    self.initial_cell_position = [200,200]
     self.best_inside_outside = (0,300)
     self.inside_outside = []
     self.last_inside_outside = (0,0)
@@ -76,20 +76,32 @@ class PalacellEnv():
     self.cell_increments = []
     self.epoch_cell_increments = []
 
-  def reset(self): #todo!
+  def reset(self, coordinates):
+    
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
+
+    self.last_cell_num = 1
+    self.epoch_cell_increments = [] 
+    self.initial_cell_position = coordinates 
+    self.configure(self.configuration,0,finalPath = self.output_file)
     
+    try:
+      process = Popen(['./palaCell',self.configuration], stdout=DEVNULL)
+      process.wait()
+    except Exception as e:
+      os.chdir(cwd)
+      raise Exception(e)
+
     observation = np.asarray(Image.new("RGB", (self.width,self.height), (0,0,0))).copy()
     observation = vki.add_target(observation, [self.target[0]*3/4, self.target[1]*3/4], self.target[2]*3/4).reshape((1,self.width,self.height,3)).copy()
-    self.last_cell_num = 0
-    self.epoch_compr = []
-    self.epoch_cell_increments = []
-    self.iteration_num = 0
     
-    image = vki.create_pil_image("output/"+self.output_file+"_final_cell")
-    observation = vki.pil_to_array(image).reshape((1,self.width,self.height,3))
-    os.chdir(cwd)
+    #image = vki.create_pil_image("output/"+self.output_file+"_final_cell")
+    #observation = vki.pil_to_array(image).reshape((1,self.width,self.height,3))
+    
+    self.iteration_num = 0
+    self.epoch_compr = []
+    os.chdir(cwd) 
     
     return observation
 
@@ -124,7 +136,8 @@ class PalacellEnv():
     return out
 
   def step(self, action):
-    
+
+    print("Initial cell position was: ", self.initial_cell_position) 
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
 
@@ -148,13 +161,16 @@ class PalacellEnv():
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
     cell_num = vki.read_cell_num("output/"+self.output_file+"_final_cell")
-    
+    print("ENV cell_num", cell_num)
+
     if cell_num>self.best_cell_num:
         self.best_cell_num = cell_num
         self.performance_updated = True
     
     increment = cell_num - self.last_cell_num
     
+    print("ENV cell n increment: ", increment)
+
     self.epoch_cell_increments.append(increment)
     self.last_cell_num = cell_num
     self.iteration_num += self.iters
@@ -173,22 +189,29 @@ class PalacellEnv():
       self.cell_numbers.append(cell_num)
       self.cell_increments.append(self.epoch_cell_increments)
       
-      outside, inside = vki.count_target_points("output/"+self.output_file+"_final_cell", [self.target[0], self.target[1]], self.target[2])
-      cell_num = vki.read_cell_num("output/"+self.output_file+"_final_cell")
-      normFraction = (inside-outside)/cell_num
-      self.inside_outside.append((inside/cell_num,outside/cell_num))
-      diff = self.best_inside_outside[0]-self.best_inside_outside[1]
-      if diff < (inside-outside)/cell_num or (diff == (inside-outside)/cell_num and self.best_inside_outside[0]<inside/cell_num):
-        self.best_inside_outside = (inside/cell_num, outside/cell_num)
-        self.performance_updated = True
-      self.last_inside_outside = (inside/cell_num, outside/cell_num)
-      print("inside/outside: "+str(inside/cell_num)+"/"+str(outside/cell_num))
-      image = vki.create_decentered_pil_image("output/"+self.output_file+"_final_cell").resize([self.width, self.height])
-      observation = vki.pil_to_array(image)
-      observation = vki.add_target(observation, [self.target[0]*3/4, self.target[1]*3/4], self.target[2]*3/4).reshape((1,self.width,self.height,3)).copy()
-      os.chdir(cwd)
+    outside, inside = vki.count_target_points("output/"+self.output_file+"_final_cell", [self.target[0], self.target[1]], self.target[2])
+    cell_num = vki.read_cell_num("output/"+self.output_file+"_final_cell")
     
-    return observation, cell_num, normFraction, done, None
+    image = vki.create_decentered_pil_image("output/"+self.output_file+"_final_cell").resize([self.width, self.height])
+    observation = vki.pil_to_array(image)
+    observation = vki.add_target(observation, [self.target[0]*3/4, self.target[1]*3/4], self.target[2]*3/4).reshape((1,self.width,self.height,3)).copy()
+    
+
+    normFraction = (inside-outside)/cell_num
+    reward=normFraction
+    self.inside_outside.append((inside/cell_num,outside/cell_num))
+    diff = self.best_inside_outside[0]-self.best_inside_outside[1]
+    if diff < (inside-outside)/cell_num or (diff == (inside-outside)/cell_num and self.best_inside_outside[0]<inside/cell_num):
+      self.best_inside_outside = (inside/cell_num, outside/cell_num)
+      self.performance_updated = True
+    self.last_inside_outside = (inside/cell_num, outside/cell_num)
+    print("Current cells inside", inside)
+    print("Current cells outside", outside)
+    print("inside/outside: "+str(inside/cell_num)+"/"+str(outside/cell_num))
+    
+    os.chdir(cwd)
+    
+    return action, observation, cell_num, normFraction, reward, done, None
 
   def render(self):
     cwd = os.getcwd()
@@ -243,7 +266,7 @@ class PalacellEnv():
     return self.performance_indexes
   
   def getNormFrac(self):
-    return self.inside_outside
+    return self.last_inside_outside[0]
   
   def getCellNum(self):
     return self.last_cell_num

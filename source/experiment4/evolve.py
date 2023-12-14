@@ -82,8 +82,26 @@ class Evolve:
     #leveraging on the environment instance
     def administer_solution(self, solution, sol_idx):
         
-        # reset environment
-        self.env.reset()
+        # protocol segments as a list of genes in the solution
+        # TODO: understand if pygad supports lists as genes
+        # if not fall back on using only comprForce
+        # more precisely, a list of lists
+        # external list is segments
+        # internal lists have two elements: Axis and comprForce
+        protocol = solution
+
+        #each protocol is composed by two macro-parts: 
+        #A - the setting of the initial cell position
+        #B - the sequence of compr stimuli and axes for the n protocol segments
+
+        # A - initial cell positioning
+        # TODO parametrize on n of spatial dimensions
+        xCoord=protocol[0]
+        yCoord=protocol[1]
+        coordinates=[xCoord, yCoord]
+
+        # reset environment + pass coordinates
+        self.env.reset(coordinates)
         
         # act on environment with solution as protocol
         # the step() function executes iters simulation steps
@@ -94,13 +112,6 @@ class Evolve:
         starting_epoch=0
         epochs=self.env.epochs
         
-        # protocol segments as a list of genes in the solution
-        # TODO: understand if pygad supports lists as genes
-        # if not fall back on using only comprForce
-        # more precisely, a list of lists
-        # external list is segments
-        # internal lists have two elements: Axis and comprForce
-        protocol = solution
 
         print("Process ", self.id, " administering solution:", " ".join(str(e) for e in solution), "with ", len(protocol), "genes and ", epochs, "protocol segments")   
 
@@ -117,13 +128,9 @@ class Evolve:
         #A - the setting of the initial cell position
         #B - the sequence of compr stimuli and axes for the n protocol segments
 
-        # A - initial cell positioning
-        # TODO parametrize on n of spatial dimensions
-        xCoord=protocol[0]
-        yCoord=protocol[1]
 
         self.env.configure(self.env.configuration, self.env.iters, export_step=self.env.iters, initialPath = "output/"+self.env.output_file+"_final_cell.vtp",
-        finalPath = self.env.output_file, initial_position=np.array(xCoord, yCoord))
+        finalPath = self.env.output_file, initial_position=np.array([xCoord, yCoord]))
 
         print("Process ", self.id, "solution ", sol_idx, "setting initial coordinates x: ", xCoord, "y: ", yCoord)
 
@@ -158,7 +165,7 @@ class Evolve:
             #compute fraction of inside cells before step
             normFrac_before=self.env.getNormFrac()
 
-            env_actions, _, _, _, _, _ = self.env.step([axis, comprForce])
+            env_actions, _, _, _, _, _, _ = self.env.step([axis, comprForce])
 
             print("Process ", self.id, "solution ", sol_idx, "protocol segment ", str(int(j/2)),"over", str(len(protocol)), "protocol segments, genes ",j, "and", str(j+1),   "\n Administering a compression stimulus of value ", env_actions[1], " on the ", env_actions[0], " axis for ", self.env.iters, " simulation steps")
 
@@ -172,7 +179,7 @@ class Evolve:
 
             
             incrementNCells = nCells_after-nCells_before
-            incrementNormFrac = normFrac_before - normFrac_after
+            incrementNormFrac = normFrac_after - normFrac_before
             
             #append increment to cellIncrements list
             cellIncrements.append(incrementNCells)
@@ -202,10 +209,13 @@ class Evolve:
     #in computing the fitness of the solution
     #leveraging on the returned value from simulation
     #can support simple passing, or be made more complex
-    def computeFitness(self, nCells):
+    def computeFitness(self, nCells, normFrac):
 
         #passing the final n of cells at the end of the simulation
-        solution_fitness = nCells
+        cells = nCells
+        
+        #passing the final norm frac of cells inside target at the end of the simulation
+        solution_fitness = normFrac
 
         return solution_fitness
     
@@ -217,9 +227,9 @@ class Evolve:
 
         #use solution as a protocol and administer it to the env
         #get final n of cells at the end of the simulation
-        nCells=self.administer_solution(solution=solution, sol_idx=sol_idx)
+        nCells, normFrac=self.administer_solution(solution=solution, sol_idx=sol_idx)
 
-        solution_fitness=self.computeFitness(nCells=nCells)
+        solution_fitness=self.computeFitness(nCells=nCells, normFrac=normFrac)
         
         print("Process ", self.id, " generation ", str(ga_instance.generations_completed), " solution ", sol_idx, " has fitness ", solution_fitness)
 
