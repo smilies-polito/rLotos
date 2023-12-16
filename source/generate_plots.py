@@ -29,13 +29,12 @@ import matplotlib.cm as cm
 # results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration, parameterValues):
-
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
+def plotPerformanceRLCellNumber(results_folder, data_file, experiment, exploration, parameterValues)
 
     data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
     cells = data['cell_numbers']
+    
+    # PLOT RAW CELLS 
     cellPlot=sns.lineplot(data=cells)
     if experiment == '1_final_n_cells':
         plt.ylabel('Final number of cells', fontsize=15)
@@ -45,6 +44,7 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '.png')
     plt.close()
 
+    # CREATE WINDOWS OUT OF EPOCHS
     # slice data in sliding windows of n epochs, jumping over m*10 epochs
     # n: window size
     # m: multiplier to set the slice index right for selected n
@@ -53,6 +53,7 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     # slice position data in window-based chunks
     cellsWindows = [cells[i:i + n] for i in range(0, len(cells), 10 * m)]
 
+    # COMPUTE METRICS
     metricValues=pd.DataFrame(index=range(len(cellsWindows)), columns=["Cells", "Mean", "Variance"])
     
     for i, w in enumerate(cellsWindows):
@@ -63,6 +64,7 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     mean = metricValues['Mean']
     var = metricValues['Variance']
 
+    # PLOT MEAN
     meanPlot=sns.lineplot(data=mean)
     meanPlot.set_title("MEAN FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)  
     if experiment == '1_final_n_cells':
@@ -72,6 +74,7 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
 
+    # PLOT VARIANCE
     varPlot=sns.lineplot(data=var)
     varPlot.set_title("VARIANCE OF FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues) 
     if experiment == '1_final_n_cells':
@@ -82,13 +85,14 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
     plt.close()
 
+    # EXTRACT CELLS IN WINDOWS
     cellsOverWindows=pd.DataFrame()
     for w in range(len(metricValues)):
         print(metricValues["Cells"][w])
         cellsOverWindows[w]=pd.Series(metricValues["Cells"][w])
         print(cellsOverWindows)
 
-    #plotting max fitness per generation
+    # PLOT MAX FITNESS PER WINDOW
     maxFitness=cellsOverWindows.max()
     maxPlot=sns.scatterplot(data=maxFitness)
     maxPlot.set_title("MAX FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
@@ -106,11 +110,8 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     cellsOverWindows.drop(columns=[6,7], inplace=True)
     print(cellsOverWindows)
 
-    violin = sns.violinplot(data=cellsOverWindows)#, bw_adjust=.5, cut=1, linewidth=1, palette="Set3")
-    plot=violin
-    #violin = sns.violinplot(data=cellsOverWindows, palette='turbo', inner=None, linewidth=0, saturation=0.4)
-    #boxplot = sns.boxplot(data=cellsOverWindows, palette='turbo', width=0.3,
-    #boxprops={'zorder': 2}, ax=violin)
+    # PLOT VIOLIN PLOTS PER WINDOW
+    plot = sns.violinplot(data=cellsOverWindows, bw_adjust=.5, cut=1, linewidth=1, fill=False, linecolor='b')
     plot.set_title("FITNESS DISTRIBUTIONS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
     #plot.set_ylim(245, 280)
     plot.set_xlabel("Windows")
@@ -119,9 +120,6 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
     if experiment == '2_final_fraction_cells':
         plot.set_ylabel("Final fraction of cells inside target")
 
-    #plot.set(ylim=(250, 275))
-    #sns.despine(left=True, bottom=True)
-    
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
     plt.close()
 
@@ -129,22 +127,18 @@ def plotPerformanceCellNumber(results_folder, data_file, experiment, exploration
 # results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformanceCellsInside(results_folder, data_file, experiment, exploration, parameterValues):
-
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
+def plotPerformanceRLCircles(results_folder, data_file, experiment, exploration, parameterValues):
 
     data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
     print(data.circle_actions[0])
-    exit(0)
     cells = data['inside_outside']
-    print(cells)
     
+    # EXTRACT FRACTION OF CELLS INSIDE TARGET
     insideFraction=pd.DataFrame(columns=["inside"], index=range(len(cells)))
     for i, w in enumerate(cells):
         insideFraction.iloc[i]=w[0]
-    print(insideFraction)
 
+    # PLOT FRACTION OF CELLS INSIDE
     cellPlot=sns.lineplot(data=insideFraction)
     if experiment == '1_final_n_cells':
         plt.ylabel('Final number of cells', fontsize=15)
@@ -154,6 +148,7 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '.png')
     plt.close()
 
+    # CREATE WINDOWS OUT OF EPOCHS
     # slice data in sliding windows of n epochs, jumping over m*10 epochs
     # n: window size
     # m: multiplier to set the slice index right for selected n
@@ -162,6 +157,7 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
     # slice position data in window-based chunks
     cellsWindows = [insideFraction[i:i + n] for i in range(0, len(insideFraction), 10 * m)]
 
+    # COMPUTE METRICS
     metricValues=pd.DataFrame(index=range(len(cellsWindows)), columns=["Cells", "Mean", "Variance"])
 
     print(type(cellsWindows[0]))
@@ -176,11 +172,10 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
         metricValues["Mean"].iloc[i] = mean
         metricValues["Variance"].iloc[i] = var
     
-    print(metricValues)
-
     mean = metricValues['Mean']
     var = metricValues['Variance']
 
+    # PLOT MEAN OF THE FRACTION OF CELLS INSIDE
     meanPlot=sns.lineplot(data=mean)
     meanPlot.set_title("MEAN FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)  
     if experiment == '1_final_n_cells':
@@ -190,6 +185,7 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
 
+    # PLOT VARIANCE OF THE FRACTION OF CELLS INSIDE
     varPlot=sns.lineplot(data=var)
     varPlot.set_title("VARIANCE OF FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues) 
     if experiment == '1_final_n_cells':
@@ -200,19 +196,18 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
     plt.close()
 
+    # EXTRACT THE FRACTION OF CELLS INSIDE PER WINDOW
     cellsOverWindows=pd.DataFrame()
     for w in range(len(metricValues)):
         print(metricValues["Cells"][w])
         cellsOverWindows[w]=pd.Series(metricValues["Cells"][w])
         print(cellsOverWindows)
 
-    #plotting max fitness per generation
+    # PLOT MAX OF THE FRACTION OF CELLS INSIDE PER WINDOW
     maxFitness=cellsOverWindows.max()
     maxPlot=sns.scatterplot(data=maxFitness)
     maxPlot.set_title("MAX FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
     maxPlot.set_xlabel("Generations")
-    #plot.set(ylim=(260, 285))
-    #sns.despine(left=True, bottom=True)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MAX.png')
     plt.close()
 
@@ -222,163 +217,50 @@ def plotPerformanceCellsInside(results_folder, data_file, experiment, exploratio
     #        cellsOverWindows.drop(columns=[c], axis=1)
 
     #cellsOverWindows.drop(columns=[6,7], inplace=True)
-    print(cellsOverWindows)
 
+    # PLOT VIOLIN PLOTS OF THE FRACTION OF CELLS INSIDE
     violin = sns.violinplot(data=cellsOverWindows)#, bw_adjust=.5, cut=1, linewidth=1, palette="Set3")
     plot=violin
-    #violin = sns.violinplot(data=cellsOverWindows, palette='turbo', inner=None, linewidth=0, saturation=0.4)
-    #boxplot = sns.boxplot(data=cellsOverWindows, palette='turbo', width=0.3,
-    #boxprops={'zorder': 2}, ax=violin)
     plot.set_title("FITNESS DISTRIBUTIONS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
-    #plot.set_ylim(245, 280)
     plot.set_xlabel("Windows")
     if experiment == '1_final_n_cells':
         plot.set_ylabel("Final number of cells")
     if experiment == '2_final_fraction_cells':
         plot.set_ylabel("Final fraction of cells inside target")
-
-    #plot.set(ylim=(250, 275))
-    #sns.despine(left=True, bottom=True)
     
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
     plt.close()
-
-
-# a function to plot performance metrics - mean and variance
-# results_folder, data_file : the filepath - filepath of the output .npy file
-# experiment - indication of the experiment
-# exploration - indication of the hyperparameter exploration 
-# metric - the metric to consider (mean or variance)
-# logScale - provides logScale visualization on the y axis if True (defaults to False)
-def plotPerformanceMetrics(results_folder, data_file, experiment, exploration, parameterValues, logScale=False):
-    
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
-
-    data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
-    cells = data['cell_numbers']
-
-    # slice data in sliding windows of n epochs, jumping over m*10 epochs
-    # n: window size
-    # m: multiplier to set the slice index right for selected n
-    m = 1
-    n = 21 * m
-    # slice position data in window-based chunks
-    cellsWindows = [cells[i:i + n] for i in range(0, len(cells), 10 * m)]
-
-    metricValues=pd.DataFrame(index=range(len(cellsWindows)), columns=["Cells", "Mean", "Variance"])
-    
-    for i, w in enumerate(cellsWindows):
-        metricValues["Cells"].iloc[i] = list(w)
-        metricValues["Mean"].iloc[i] = w.mean()
-        metricValues["Variance"].iloc[i] = w.var()
-
-    mean = metricValues['Mean']
-    var = metricValues['Variance']
-
-    meanPlot=sns.lineplot(data=mean)
-    meanPlot.set_title("MEAN FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)  
-    if experiment == '1_final_n_cells':
-        plt.ylabel('Mean of the final number of cells', fontsize=15)
-    if experiment == '2_final_fraction_cells':
-        plt.ylabel('Mean of the fraction of cells inside target', fontsize=15) 
-    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
-    plt.close()
-
-    varPlot=sns.lineplot(data=var)
-    varPlot.set_title("VARIANCE OF FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues) 
-    if experiment == '1_final_n_cells':
-        plt.ylabel('Variance of the final number of cells', fontsize=15)
-    if experiment == '2_final_fraction_cells':
-        plt.ylabel('Variance of the final fraction of cells inside target', fontsize=15)
-    plt.legend(loc=3)
-    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
-    plt.close()
-
-    cellsOverWindows=pd.DataFrame()
-    for w in range(len(metricValues)):
-        print(metricValues["Cells"][w])
-        cellsOverWindows[w]=pd.Series(metricValues["Cells"][w])
-        print(cellsOverWindows)
-
-    #plotting max fitness per generation
-    maxFitness=cellsOverWindows.max()
-    maxPlot=sns.scatterplot(data=maxFitness)
-    maxPlot.set_title("MAX FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
-    maxPlot.set_xlabel("Generations")
-    #plot.set(ylim=(260, 285))
-    #sns.despine(left=True, bottom=True)
-    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MAX.png')
-    plt.close()
-
-    #TODO: make cols drop systematic when they are shorted than expected window
-    #for c in cellsOverWindows.columns:
-    #    if len(list(cellsOverWindows.loc[c].dropna()))<int(n/m):
-    #        cellsOverWindows.drop(columns=[c], axis=1)
-
-    cellsOverWindows.drop(columns=[6,7], inplace=True)
-    print(cellsOverWindows)
-
-    violin = sns.violinplot(data=cellsOverWindows)#, bw_adjust=.5, cut=1, linewidth=1, palette="Set3")
-    plot=violin
-    #violin = sns.violinplot(data=cellsOverWindows, palette='turbo', inner=None, linewidth=0, saturation=0.4)
-    #boxplot = sns.boxplot(data=cellsOverWindows, palette='turbo', width=0.3,
-    #boxprops={'zorder': 2}, ax=violin)
-    plot.set_title("FITNESS DISTRIBUTIONS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
-    #plot.set_ylim(245, 280)
-    plot.set_xlabel("Windows")
-    if experiment == '1_final_n_cells':
-        plot.set_ylabel("Final number of cells")
-    if experiment == '2_final_fraction_cells':
-        plot.set_ylabel("Final fraction of cells inside target")
-
-    #plot.set(ylim=(250, 275))
-    #sns.despine(left=True, bottom=True)
-    
-    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
-    plt.close()
-
 
 # a function to plot the final total number of cells
 # results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformanceGA(results_folder, data_file, experiment, exploration, parameterValues):
-
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
-
-    print(results_folder+data_file)
+def plotPerformanceGACellNumber(results_folder, data_file, experiment, exploration, parameterValues):
     fitnesses=pd.read_csv(results_folder+data_file)
-
     cells=fitnesses["cells"]
 
-    #obtaining df with generations as columns
+    # DF WITH GENERATIONS AS COLS
     cellsOverGenerations=pd.DataFrame()
     for w in range(len(fitnesses)):
         print(cells.iloc[w])
         cellsOverGenerations[w]= pd.Series(cells.iloc[w].split(";")).astype(int)
     
-    #plotting violinplot for each generation
+    # PLOT VIOLINS PER GENERATION
     cellPlot = sns.violinplot(data=cellsOverGenerations)#, palette="Set3")
     cellPlot.set_title("FITNESS DISTRIBUTIONS OVER GENERATIONS " + experiment + '_' + exploration + "_" + parameterValues)
     cellPlot.set_xlabel("Generations")
-    #plot.set(ylim=(260, 285))
-    #sns.despine(left=True, bottom=True)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
     plt.close()
 
-    #plotting max fitness per generation
+    # PLOT MAX FITNESS PER GENERATION
     maxFitness=cellsOverGenerations.max()
     maxFPlot=sns.scatterplot(data=maxFitness)
     maxFPlot.set_title("MAX FITNESS OVER GENERATIONS " + experiment + '_' + exploration + "_" + parameterValues)
     maxFPlot.set_xlabel("Generations")
-    #plot.set(ylim=(260, 285))
-    #sns.despine(left=True, bottom=True)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MAX.png')
     plt.close()
 
-    #plotting average and variance per generation
+    
     metricValues=pd.DataFrame(index=range(len(cellsOverGenerations.columns)), columns=["Cells", "Mean", "Variance"])
     
     for i in range(len(cellsOverGenerations.columns)):
@@ -388,66 +270,34 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
         metricValues["Variance"].iloc[i] = cells.var()
     print(metricValues)
 
+    # PLOT MEAN OF FITNESS PER GENERATION
     means=metricValues["Mean"]
     vars=metricValues["Variance"]
     meanPlot=sns.lineplot(data=means)
     meanPlot.set_title("MEAN FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
+
+    # PLOT VARIANCE OF FITNESS PER GENERATION
     varPlot=sns.lineplot(data=vars)
     varPlot.set_title("VARIANCE OF FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
     plt.close()
 
-def analyzeProtocolsGA(results_folder, data_file, experiment, exploration, parameterValues):
-
-    output=pd.read_csv(results_folder+data_file, delimiter=",")
-    protocols=output["Solution"]
-    comprValues=pd.DataFrame()
-    print(len(protocols))
-    compr=[]
-    for row in protocols:
-
-        protocol = row.split(";")
-        
-        
-        for stimuli in protocol:
-            try:
-                #print(stimuli.split("|")[1].strip("'").strip("]").strip("'"))
-                compr.append(float(stimuli.split("|")[1].strip("'").strip("]").strip(" ").strip("'")))
-            except Exception as e:
-                print(e)
-
-
-            
-    print(len(compr))
-    print("Average:", sum(compr)/len(compr))
-    print("Max", max(compr))
-    print("Min", min(compr))
-
-    comprPlot=sns.histplot(data=compr)
-    plt.show()
-
-
 
 def plotTestingResults(results_folder, data_file, experiment, exploration, parameterValues, logScale=False):
 
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
-
     data=pd.DataFrame.from_dict(np.load(results_folder+"/testing/"+data_file, allow_pickle=True).item())
+
+    # SELECT TESTING EPOCHS
     cells = data['cell_numbers'][70:]
 
+    # PLOT HISTOGRAM OF FITNESS VALUES ACROSS TESTING EPOCHS
     testPlot = sns.histplot(data=cells, binwidth=1)
     testPlot.set_title("MAX FITNESS OVER TESTING EPOCH " + experiment + '_' + exploration + "_" + parameterValues)
     testPlot.set_xlabel("Final number of cells")
-    #plot.set(ylim=(260, 285))
-    #sns.despine(left=True, bottom=True)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_TEST.png')
     plt.close()
-
-
-
 
 # a function to plot the generated protocols at the start and end epochs
 # results_folder, data_file : the filepath - filepath of the output .npy file including information on axis and comprForce stimuli administered
@@ -457,23 +307,17 @@ def plotTestingResults(results_folder, data_file, experiment, exploration, param
 # stop_epoch - last epoch to consider to extract protocol
 def plotProtocols(results_folder, data_file, experiment, exploration, start_epoch, stop_epoch):
 
-    if exploration != 'lr_gamma' and exploration != 'numIter':
-        print('Insert valid exploration name! Either lr_gamma or numIter')
-
     data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
 
+    # TAKE PROTOCOLS FROM TWO EPOCHS
     start_epoch_name = str('epoch_' + str(start_epoch))
     stop_epoch_name = str('epoch_' + str(stop_epoch))
-
     protocol1=pd.DataFrame(data["compr_history"][start_epoch], columns=["axis", "comprForce"])
     protocol2=pd.DataFrame(data["compr_history"][stop_epoch], columns=["axis", "comprForce"])
 
-    print(protocol1, protocol2)
-
-
-
     colors = {'X': 'tab:orange', 'Y': 'tab:blue'}
 
+    # PLOT PROTOCOLS
     fig, ax = plt.subplots()
     protocol1['indexes'] = protocol1.index
     protocol1.plot(x='indexes', y='comprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol1['axis'].map(colors))
@@ -503,8 +347,15 @@ if __name__ == '__main__':
     epoch="20"
     experiment='2_final_fraction_cells'
 
-    plotPerformanceCellsInside(results_folder=results_folder+"new_palacell_out_circles_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
+    plotPerformanceRLCircles(results_folder=results_folder+"new_palacell_out_circles_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
     
+    results_folder="results/experiment1.2/"
+    lr="0.0001"
+    gamma="0.99"
+    numIter="100"
+    epoch="70"
+    # Performance over epochs - final number of cells
+    plotPerformanceRLCellNumber(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
     
     exit(0)
     #TARGET 1 - GA RESULTS 
