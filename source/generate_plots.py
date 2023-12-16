@@ -187,7 +187,8 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
 # results_folder, data_file : the filepath - filepath of the output .npy file
 # experiment - indication of the experiment
 # exploration - indication of the hyperparameter exploration
-def plotPerformanceGACellNumber(results_folder, data_file, experiment, exploration, parameterValues):
+def plotPerformanceGA(results_folder, data_file, experiment, exploration, parameterValues):
+    
     fitnesses=pd.read_csv(results_folder+data_file)
     cells=fitnesses["cells"]
 
@@ -197,12 +198,6 @@ def plotPerformanceGACellNumber(results_folder, data_file, experiment, explorati
         #print(cells.iloc[w])
         cellsOverGenerations[w]= pd.Series(cells.iloc[w].split(";")).astype(int)
     
-    # PLOT VIOLINS PER GENERATION
-    cellPlot = sns.violinplot(data=cellsOverGenerations, color="white")#, palette="Set3")
-    cellPlot.set_title("FITNESS DISTRIBUTIONS OVER GENERATIONS " + experiment + '_' + exploration + "_" + parameterValues)
-    cellPlot.set_xlabel("Generations", fontsize=10)
-    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
-    plt.close()
 
     # PLOT MAX FITNESS PER GENERATION
     maxFitness=cellsOverGenerations.max()
@@ -226,14 +221,40 @@ def plotPerformanceGACellNumber(results_folder, data_file, experiment, explorati
     means=metricValues["Mean"]
     vars=metricValues["Variance"]
     meanPlot=sns.lineplot(data=means)
-    meanPlot.set_title("MEAN FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
+    if experiment == '1_final_n_cells':
+        plt.ylabel('Mean of the final number of cells', fontsize=10)
+        meanPlot.set_title("Maximum final number of cells - "+exploration+":"+parameterValues, fontsize=12)
+    if experiment == '2_final_fraction_cells':
+        plt.ylabel('Mean of the final fraction of cells inside target', fontsize=10)
+        meanPlot.set_title("Maximum final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
 
     # PLOT VARIANCE OF FITNESS PER GENERATION
     varPlot=sns.lineplot(data=vars)
-    varPlot.set_title("VARIANCE OF FITNESS OVER WINDOWS " + experiment + '_' + exploration + "_" + parameterValues)
+    if experiment == '1_final_n_cells':
+        plt.ylabel('Variance of the final number of cells', fontsize=10)
+        varPlot.set_title("Maximum final number of cells - "+exploration+":"+parameterValues, fontsize=12)
+    if experiment == '2_final_fraction_cells':
+        plt.ylabel('Variance of the final fraction of cells inside target', fontsize=10)
+        varPlot.set_title("Maximum final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
+    plt.close()
+
+    plot = sns.violinplot(data=cellsOverGenerations, fill=True, split=False, color="yellow", inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
+    
+    plot.set_xlabel("Generations",  fontsize=10)
+    if experiment == '1_final_n_cells':
+        plot.set_ylabel("Final number of cells", fontsize=10)
+        plot.set_title("Final number of cells - "+exploration+":"+parameterValues, fontsize=12)
+    if experiment == '2_final_fraction_cells':
+        plot.set_ylabel("Final fraction of cells inside target", fontsize=10)
+        plot.set_title("Final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
+
+    #if exploration=="numIter":
+    #    plt.ylim(264, 279)
+    
+    plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
     plt.close()
 
 
@@ -361,7 +382,7 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
 
 if __name__ == '__main__':
 
-    
+    # EXPERIMENT 1.1 - RL - TARGET 1 - LR GAMMA
     results_folder="results/experiment1.1/"
     epoch="70"
     numIter="20"
@@ -370,83 +391,32 @@ if __name__ == '__main__':
 
             plotPerformanceRL(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
     
+    # EXPERIMENT 1.2 - RL - TARGET 1 - NUMITER
     results_folder="results/experiment1.2/"
     gamma="0.99"
     lr="0.001"
-    for numIter in ["20", "50", "100", "200"]:
+    for numIter in ["20", "40", "50", "100", "200"]:
         
         epoch="70"
         plotPerformanceRL(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
-        epoch="99(best)"
-        plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
+        #epoch="99(best)"
+        #plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
-    exit(0)
-
+    # EXPERIMENT 2 - RL - TARGET 2 - LR GAMMA
     results_folder="results/experiment2/"
     epoch="140"
     numIter="20"
-    epoch="140"
     experiment='2_final_fraction_cells'
 
     for lr in ["0.001", "0.0001", "1e-05"]:
         for gamma in ["0.95", "0.99"]:
-    
-            plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
-    
-    
-    #TARGET 1 - GA RESULTS 
+            pass
+            #plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
+
+    # EXPERIMENT 3 - GA - TARGET 1 - NUMITER
     results_folder="results/experiment3/"
-    numIter="50.0"
-
-
-    #analyzeProtocolsGA(results_folder=results_folder+"new_palacell_out_"+numIter+"/", data_file="output.csv", experiment='3_GA_1.1', exploration='numIter',parameterValues=numIter)    
-    results_folder="results/experiment1.1/"
-    lr=str(0.0001)
-    gamma=str(0.99)
-    
-    analyzeProtocols(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='exp1.1', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
-    exit(0)
-    # Performance over windows - MEAN and VARIANCE of the final number of cells lineplot
-    plotPerformanceGA(results_folder=results_folder+"new_palacell_out_"+numIter+"/", data_file="fitness_track.csv", experiment='3_GA_1.1', exploration='numIter',parameterValues=numIter)
-
-    
-    # TARGET 1 - lr and gamma exploration
-    results_folder="results/experiment1.1/"
-    epoch="70"
-    for lr in ["1e-05","0.001", "0.0001", "1e-05"]:
-        for gamma in ["0.95", "0.99"]:
-
-            # Performance over epochs - final number of cells
-            plotPerformanceCellNumber(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
-
-            # Performance over windows - MEAN and VARIANCE of the final number of cells lineplot
-            plotPerformanceMetrics(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='lr_gamma', logScale=False, parameterValues=lr+"_"+gamma)       
-
-            # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-            for i in range(0, 70, 70):
-                plotProtocols(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='exp1.1', exploration='lr_gamma', start_epoch=0, stop_epoch=i)
-            
-
-    # TARGET 1 - numIters exploration
-    results_folder="results/experiment1.2/"
-    lr="0.0001"
-    gamma="0.99"
-
     for numIter in ["20", "50", "100", "200"]:
-
-        epoch="70"
-        # Performance over epochs - final number of cells
-        plotPerformanceCellNumber(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
-
-        # Performance over windows - MEAN and VARIANCE of the final number of cells lineplot
-        plotPerformanceMetrics(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='1_final_n_cells', exploration='numIter', logScale=False, parameterValues=numIter)       
-
-        #plot testing results
-        epoch="99(best)"
-        plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
-
-        # Protocol over epochs - compression stimuli protocols at epoch 0 and epoch N
-        for i in range(0, 70, 70):
-            plotProtocols(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_70.npy", experiment='exp1.1', exploration='numIter', start_epoch=0, stop_epoch=i)
-            
+        
+        plotPerformanceGA(results_folder=results_folder+"new_palacell_out_"+numIter+".0/", data_file="fitness_track.csv", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
+    
