@@ -337,6 +337,72 @@ def plotProtocols(results_folder, data_file, experiment, exploration, start_epoc
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + stop_epoch_name + '_protocol.png')
     plt.close()
 
+def plotInitialPositions(results_folder, data_file, experiment, exploration, bestExperimentName, fillTarget=True):
+
+    data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
+    positions = data['xxx']
+
+    best_experiment_performance = positions[bestExperimentName]
+    best_experiment_performance.positions=[bestExperimentName]
+    
+    # HEATMAPS
+    # slice data in sliding windows of n epochs, jumping over m*10 epochs
+    # n: window size
+    # m: multiplier to set the slice index right for selected n
+    m = 1
+    n = 21 * m
+    # slice position data in window-based chunks
+    list_df = [positions[i:i + n] for i in range(0, len(positions), 10 * m)]
+    print(list_df)
+
+    # set range of relevant windows
+    # considering windows 1 - 12
+    # starting from window 1
+    # selecting df chunks from the second to two chunks before end since the last two are partial
+    # using window-1 to compute colors on performance list cmap
+    # TODO: enforce window range / performance list coherence
+    window_range = [1, 12]
+    window = window_range[0]
+
+    for chunk in list_df[window_range[0]:window_range[1]+1]:
+
+        #epoch indexes considered for computation
+        print(chunk.index)
+
+        if fillTarget:
+
+            # create colormap with performance values
+            performance_list = list(best_experiment_performance)
+            min_val, max_val = min(performance_list), max(performance_list)
+
+            # use the reds colormap that is built-in and normalize over performance values
+            norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
+            color = mpl.cm.Reds(norm(performance_list))
+
+            circle = plt.Circle((200, 250), 80, color=color[window-1], fill=True)
+            fig, ax = plt.subplots()
+            ax.set_aspect('equal')
+
+        else:
+            circle = plt.Circle((200, 250), 80, color='r', fill=False)
+            fig, ax = plt.subplots()
+            ax.set_aspect('equal')
+
+        fig = plt.hist2d(x=chunk['x axis'], y=chunk['y axis'], bins=[8, 8], cmap='Purples', range=[[0, 400], [0, 400]])
+        plt.title('Window ' + str(window), fontsize=30)
+        plt.xlabel('X axis', fontsize=15)
+        plt.ylabel('Y axis', fontsize=15)
+        ax.tick_params(labelsize=12)
+        ax.set_xbound(0, 400)
+        ax.set_ybound(0, 400)
+        # adding target
+        ax.add_patch(circle)
+
+        plt.savefig(str(window) + '_' + experiment + '_' + exploration + '_' +  bestExperimentName + '_heatmap_coordinates_combined.png')
+        plt.close()
+
+        window = window + 1
+
 
 
 if __name__ == '__main__':
