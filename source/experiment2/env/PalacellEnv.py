@@ -98,17 +98,25 @@ class PalacellEnv():
       self.prolif_proc = prolif_proc
       self.pipe = work2
 
-  def reset(self): #todo!
+  def reset(self): 
     cwd = os.getcwd()
     os.chdir(base_palacell_folder)
     if self.mode == 'circles':
       observation = np.asarray(Image.new("RGB", (self.width,self.height), (0,0,0))).copy()
       observation = vki.add_target(observation, [self.target[0]*3/4, self.target[1]*3/4], self.target[2]*3/4).reshape((1,self.width,self.height,3)).copy()
+      
+      # config 
+      self.configure(self.configuration,0,finalPath = self.output_file)
+
     elif self.mode == 'circle_prolif':
       self.last_cell_num = 0
       self.epoch_compr = []
       self.epoch_cell_increments = []
       self.iteration_num = 0
+
+      # config 
+      self.configure(self.configuration,0,finalPath = self.output_file)
+
       try:
         process = Popen(['./palaCell',self.configuration], stdout=DEVNULL)
         process.wait()
