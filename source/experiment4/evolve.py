@@ -101,7 +101,8 @@ class Evolve:
         coordinates=[xCoord, yCoord]
 
         # reset environment + pass coordinates
-        self.env.reset(coordinates)
+        self.env.reset()
+        self.env.setPosition(coordinates)
         
         # act on environment with solution as protocol
         # the step() function executes iters simulation steps
