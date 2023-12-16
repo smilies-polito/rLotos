@@ -88,6 +88,8 @@ class PalacellEnv():
     self.epoch_compr = []
     self.epoch_cell_increments = []
     self.iteration_num = 0
+
+    self.configure(self.configuration,0,finalPath = self.output_file)
     
     try:
       process = Popen(['./palaCell',self.configuration], stdout=DEVNULL)
