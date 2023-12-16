@@ -202,7 +202,8 @@ class PalacellEnv():
         self.cell_numbers.append(cell_num)
         self.cell_increments.append(self.epoch_cell_increments)
     elif self.mode == 'circles':
-      print(action)
+      print("ENV initial cell coordinates:",action)
+      
       self.circle_actions.append(action)
       self.configure(self.configuration,0,finalPath = 'chem_'+str(self.iters)+'_'+str(self.lr)+'_'+str(self.gamma)+'-',initial_position=np.array(action))
       

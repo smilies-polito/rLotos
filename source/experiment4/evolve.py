@@ -199,7 +199,7 @@ class Evolve:
 
         # save everything - solution, cell increments, solution fitness
         with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
-            f.write(" ,"+str(sol_idx)+","+str(xCoord)+","+str(yCoord)+";".join(str(sublist).replace(",","|") for sublist in comprHistory)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+","+str(NormFrac)+"\n")
+            f.write(" ,"+str(sol_idx)+","+str(xCoord)+","+str(yCoord)+";".join(str(sublist).replace(", ","|") for sublist in comprHistory)+","+";".join(str(i) for i in cellIncrements)+","+str(nCells)+","+str(NormFrac)+"\n")
 
 
         print("Process ", self.id, " solution ", sol_idx, ": protocol administration made ", nCells, "cells grow!", NormFrac, "is cells inside / n cells")
@@ -319,7 +319,7 @@ class Evolve:
         
         #setting up file to save everything - generation, solution, cell increments, solution fitness
         with open(base_outfolder+"/"+self.output_dir+"/output.csv", "a+") as f:
-            f.write("Generations completed,Solution index,x,y,Solution,Cell increments,Final n cells, Final Inside Fraction\n")
+            f.write("Generations completed,Solution index,x,y,Solution,Cell increments,Final n cells,Final Inside Fraction\n")
 
         # setting the gene space for each gene
         gene_space=[]
