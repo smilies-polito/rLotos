@@ -161,7 +161,7 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
     
 
     # PLOT VIOLIN PLOTS PER WINDOW
-    plot = sns.violinplot(data=cellsOverWindows, fill=True, split=False, color="gold", inner="box", inner_kws=dict(box_width=10, whis_width=3), cut=0)
+    plot = sns.violinplot(data=cellsOverWindows, fill=True, split=False, color="yellow", inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
     
     plot.set_xlabel("Windows",  fontsize=10)
     if experiment == '1_final_n_cells':
@@ -172,10 +172,10 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
         plot.set_title("Final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
 
     if exploration=="lr_gamma":
-        plt.ylim(253, 269)
+        plt.ylim(252, 271)
 
     if exploration=="numIter":
-        plt.ylim(255, 279)
+        plt.ylim(264, 279)
 
     
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
