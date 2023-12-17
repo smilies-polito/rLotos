@@ -161,7 +161,8 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
     
 
     # PLOT VIOLIN PLOTS PER WINDOW
-    plot = sns.violinplot(data=cellsOverWindows, fill=True, split=False, color="yellow", inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
+    vplot = sns.violinplot(data=cellsOverWindows, fill=True, split=False, color="darkorange", linecolor="black", width=.8) #inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
+    plot = sns.boxplot(data=cellsOverWindows, width=0.2, notch=False, fill=True, color= "seashell", linecolor="black", ax=vplot)
     
     plot.set_xlabel("Windows",  fontsize=10)
     if experiment == '1_final_n_cells':
@@ -172,10 +173,10 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
         plot.set_title("Final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
 
     if exploration=="lr_gamma":
-        plt.ylim(252, 271)
+        plt.ylim(248, 275)
 
     if exploration=="numIter":
-        plt.ylim(264, 279)
+        plt.ylim(255, 284)
 
     
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
@@ -201,7 +202,7 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
 
     # PLOT MAX FITNESS PER GENERATION
     maxFitness=cellsOverGenerations.max()
-    maxFPlot=sns.scatterplot(data=maxFitness)
+    maxFPlot=sns.scatterplot(data=maxFitness, color= "magenta")
     maxFPlot.set_title("MAX FITNESS OVER GENERATIONS " + experiment + '_' + exploration + "_" + parameterValues)
     maxFPlot.set_xlabel("Generations", fontsize=10)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MAX.png')
@@ -220,7 +221,7 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
     # PLOT MEAN OF FITNESS PER GENERATION
     means=metricValues["Mean"]
     vars=metricValues["Variance"]
-    meanPlot=sns.lineplot(data=means)
+    meanPlot=sns.lineplot(data=means, color= "magenta")
     if experiment == '1_final_n_cells':
         plt.ylabel('Mean of the final number of cells', fontsize=10)
         meanPlot.set_title("Maximum final number of cells - "+exploration+":"+parameterValues, fontsize=12)
@@ -231,7 +232,7 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
     plt.close()
 
     # PLOT VARIANCE OF FITNESS PER GENERATION
-    varPlot=sns.lineplot(data=vars)
+    varPlot=sns.lineplot(data=vars, color= "magenta")
     if experiment == '1_final_n_cells':
         plt.ylabel('Variance of the final number of cells', fontsize=10)
         varPlot.set_title("Maximum final number of cells - "+exploration+":"+parameterValues, fontsize=12)
@@ -241,7 +242,7 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_VARIANCE.png')
     plt.close()
 
-    plot = sns.violinplot(data=cellsOverGenerations, fill=True, split=False, color="yellow", inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
+    plot = sns.violinplot(data=cellsOverGenerations, fill=True, split=False, color="cyan", inner="box", inner_kws=dict(box_width=4, whis_width=1), cut=0)
     
     plot.set_xlabel("Generations",  fontsize=10)
     if experiment == '1_final_n_cells':
@@ -264,13 +265,18 @@ def plotTestingResults(results_folder, data_file, experiment, exploration, param
 
     # SELECT TESTING EPOCHS
     cells = data['cell_numbers'][70:]
+    
 
     # PLOT HISTOGRAM OF FITNESS VALUES ACROSS TESTING EPOCHS
     
-    testPlot = sns.histplot(data=cells, fill=False, binwidth=1, color="purple")
-    testPlot.set_title("Distribution of final number of cells - "+exploration+":"+parameterValues, fontsize=12)
+    testPlot = sns.histplot(data=cells, fill=True, binwidth=1, color="skyblue",discrete=True)#, hue=cells.index, multiple="stack")
+
+    testPlot.set_title("Final number of cells in testing - "+exploration+":"+parameterValues, fontsize=12)
+    plt.xlim([255, 280])
+    plt.ylim([0, 30])
+    plt.xticks(list(range(255, 280)), rotation="vertical")
     testPlot.set_xlabel("Final number of cells",  fontsize=10)
-    testPlot.set_xlabel("Count",  fontsize=10)
+    testPlot.set_ylabel("Count",  fontsize=10)
     plt.savefig(results_folder +"/"+ experiment + '_' + exploration + "_" + parameterValues + '_TEST.png')
     plt.close()
 
@@ -292,22 +298,26 @@ def plotProtocols(results_folder, data_file, experiment, exploration, start_epoc
 
     colors = {'X': 'tab:orange', 'Y': 'tab:blue'}
 
+    protocol1["comprForce"]=protocol1["comprForce"].astype(float)
+    protocol2["comprForce"]=protocol2["comprForce"].astype(float)
+
+
     # PLOT PROTOCOLS
     fig, ax = plt.subplots()
     protocol1['indexes'] = protocol1.index
     protocol1.plot(x='indexes', y='comprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol1['axis'].map(colors))
-    #plt.ylim([-0.001, 0.01])
-    plt.xlabel('Learning episodes', fontsize=10)
-    plt.ylabel('comprForce', fontsize=10)
+    plt.ylim([-0.001, 0.025])
+    plt.xlabel('Learning episodes', fontsize=15)
+    plt.ylabel('comprForce', fontsize=15)
     plt.legend(loc='upper right')
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + start_epoch_name + '_protocol.png')
     plt.close()
 
     protocol2['indexes'] = protocol2.index
     protocol2.plot(x='indexes', y='comprForce', kind='scatter', figsize=(10, 5), fontsize=15, lw=4, c=protocol2['axis'].map(colors))
-    #plt.ylim([-0.001, 0.01])
-    plt.xlabel('Learning episodes', fontsize=10)
-    plt.ylabel('comprForce', fontsize=10)
+    plt.ylim([-0.001, 0.025])
+    plt.xlabel('Learning episodes', fontsize=15)
+    plt.ylabel('comprForce', fontsize=15)
     plt.legend(loc='upper right')
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + stop_epoch_name + '_protocol.png')
     plt.close()
@@ -390,18 +400,20 @@ if __name__ == '__main__':
         for gamma in ["0.95", "0.99"]:
 
             plotPerformanceRL(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
+
+            plotProtocols(results_folder=results_folder+"new_palacell_out_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='lr_gamma', start_epoch=0, stop_epoch=37)
     
     # EXPERIMENT 1.2 - RL - TARGET 1 - NUMITER
     results_folder="results/experiment1.2/"
     gamma="0.99"
-    lr="0.001"
+    lr="0.0001"
     for numIter in ["20", "40", "50", "100", "200"]:
         
         epoch="70"
         plotPerformanceRL(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
-        #epoch="99(best)"
-        #plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
+        epoch="99(best)"
+        plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
     # EXPERIMENT 2 - RL - TARGET 2 - LR GAMMA
     results_folder="results/experiment2/"
