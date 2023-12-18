@@ -23,16 +23,14 @@ base_outfolder = "../../results"
 def parallel_train():
 
     #set when loading previous state
-    #starting_epoch = 0
+    starting_epoch = 0
 
     envs = []
     trains = []
 
-    combs = itertools.product(iters_list)
-    for i, (numIter) in enumerate(combs):
+    for i, numIter in enumerate(iters_list):
 
-        env = penv.PalacellEnv(iters=numIter, configuration_file='new_circles_iters'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'.xml', output_file='chem__'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'-', output_dir='experiment2/new_palacell_out_circles_iters', max_iterations=3400, mode='circles', target=[200,250,25],
-                lr=lr, gamma=gamma, starting_epoch=starting_epoch)
+        env = penv.PalacellEnv(iters=numIter, configuration_file='new_circles_iters_'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'.xml', output_file='chem__'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'-', output_dir='experiment2_iters/new_palacell_out_circles_iters'+str(numIter), max_iterations=3400, mode='circles', target=[200,250,80],lr=lr, gamma=gamma, starting_epoch=starting_epoch)
                 #preload_model_weights = True,
                 #preload_data_to_save = True,
                 #preload_performance = True
@@ -60,8 +58,7 @@ def parallel_train():
 
     processes = []
     senders = []
-    combs = itertools.product(iters_list)
-    for i, (numIter) in enumerate(combs):
+    for i in range(len(iters_list)):
         recv, send = Pipe()
         train = Train(envs[i], lr, gamma, i)
         proc = Process(target=train.train, args=[5, False, recv, starting_epoch])
