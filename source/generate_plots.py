@@ -291,24 +291,62 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
 
 def plotTestingResults(results_folder, data_file, experiment, exploration, parameterValues, logScale=False):
 
-    data=pd.DataFrame.from_dict(np.load(results_folder+"/testing/"+data_file, allow_pickle=True).item())
+    
+    if experiment == "1_final_n_cells":
 
-    # SELECT TESTING EPOCHS
-    cells = data['cell_numbers'][70:]
+        data=pd.DataFrame.from_dict(np.load(results_folder+"/"+data_file, allow_pickle=True).item())
+        cells = data['cell_numbers']
+        # SELECT TESTING EPOCHS
+        cells = cells['cell_numbers'][70:]
+
+    elif experiment == "2_final_fraction_cells":
+
+        data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
+        #print(data.circle_actions[0])
+        cells = data['inside_outside']
+    
+        # EXTRACT FRACTION OF CELLS INSIDE TARGET
+        insideFraction=pd.DataFrame(columns=["inside"], index=range(len(cells)))
+        for i, w in enumerate(cells):
+            insideFraction.iloc[i]=w[0]
+        cells=insideFraction["inside"]
+        #print("CELLS: ", cells)
+        # SELECT TESTING EPOCHS
+        cells = cells[70:]
+        print(numIter, cells.mean(), cells.max())
+    
+    #data=pd.DataFrame.from_dict(np.load(results_folder+"/testing/"+data_file, allow_pickle=True).item())
+
+    if experiment == "2_final_fraction_cells":
+        cellList = list(cells)
+        step = 0.005
+        start = np.floor(min(cellList) / step) * step
+        stop = max(cellList) + step
+        bin_edges = np.arange(start, stop, step=step)
+        #testPlot = sns.histplot(data=cells, fill=True, bins=bin_edges, color="crimson",discrete=True)
+        plt.hist(cellList, bins=bin_edges, color='crimson', ec='white')
+        plt.xticks(list(bin_edges), rotation="vertical")
+        plt.xlim([start-0.001, stop+0.001])
+        plt.title("Final number of cells in testing - "+exploration+":"+parameterValues, fontsize=12)
+        plt.xlabel("Final number of cells",  fontsize=10)
+        plt.ylabel("Count",  fontsize=10)
+        plt.savefig(results_folder +"/"+ experiment + '_' + exploration + "_" + parameterValues + '_TEST.png')
+        plt.close()
     
 
     # PLOT HISTOGRAM OF FITNESS VALUES ACROSS TESTING EPOCHS
     
-    testPlot = sns.histplot(data=cells, fill=True, binwidth=1, color="crimson",discrete=True)#, hue=cells.index, multiple="stack")
+    #testPlot = sns.histplot(data=cells, fill=True, binwidth=.01, color="crimson",discrete=True)#, hue=cells.index, multiple="stack")
 
-    testPlot.set_title("Final number of cells in testing - "+exploration+":"+parameterValues, fontsize=12)
-    plt.xlim([255, 280])
-    plt.ylim([0, 30])
-    plt.xticks(list(range(255, 280)), rotation="vertical")
-    testPlot.set_xlabel("Final number of cells",  fontsize=10)
-    testPlot.set_ylabel("Count",  fontsize=10)
-    plt.savefig(results_folder +"/"+ experiment + '_' + exploration + "_" + parameterValues + '_TEST.png')
-    plt.close()
+    #testPlot.set_title("Final number of cells in testing - "+exploration+":"+parameterValues, fontsize=12)
+    #plt.xlim([255, 280])
+    
+    #plt.ylim([0, 30])
+    #plt.xticks(list(range([0.4, 0.7])), rotation="vertical")
+    #plt.xticks(list(range(255, 280)), rotation="vertical")
+    #testPlot.set_xlabel("Final number of cells",  fontsize=10)
+    #testPlot.set_ylabel("Count",  fontsize=10)
+    
 
 # a function to plot the generated protocols at the start and end epochs
 # results_folder, data_file : the filepath - filepath of the output .npy file including information on axis and comprForce stimuli administered
@@ -439,6 +477,22 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
 
 if __name__ == '__main__':
 
+    # EXPERIMENT 2 - RL - TARGET 2 - ITERS
+    results_folder="results/experiment2_iters/"
+    epoch="70"
+    gamma="0.95"
+    lr="0.0001"
+    experiment='2_final_fraction_cells'
+
+    for numIter in ["20", "50", "100"]:
+            
+            #plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter+"_"+lr+"_"+gamma)
+
+            epoch="99(best)"
+            plotTestingResults(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/testing/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter+"_"+lr+"_"+gamma)
+
+    exit(0)
+
 
     # EXPERIMENT 2 - RL - TARGET 2 - ITERS
     results_folder="results/experiment2_iters/"
@@ -452,7 +506,6 @@ if __name__ == '__main__':
             
             plotInitialPositions(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', bestExperiment=bestExperiment)
 
-    exit(0)
     # EXPERIMENT 1.1 - RL - TARGET 1 - LR GAMMA
     results_folder="results/experiment1.1_final/"
     epoch="70"
@@ -473,8 +526,8 @@ if __name__ == '__main__':
         epoch="70"
         plotPerformanceRL(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
-        epoch="99(best)"
-        plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
+        #epoch="99(best)"
+        #plotTestingResults(results_folder=results_folder+"new_palacell_out_iters_"+numIter+"_"+lr+"_"+gamma, data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='1_final_n_cells', exploration='numIter', parameterValues=numIter)
 
     # EXPERIMENT 2 - RL - TARGET 2 - LR GAMMA
     results_folder="results/experiment2_radius80_final/"
@@ -497,6 +550,9 @@ if __name__ == '__main__':
     for numIter in ["20", "50", "100"]:
             
             plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter+"_"+lr+"_"+gamma)
+
+            epoch="99(best)"
+            plotTestingResults(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/testing/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter+"_"+lr+"_"+gamma)
 
 
 
