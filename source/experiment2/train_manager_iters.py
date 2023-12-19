@@ -13,10 +13,10 @@ from multiprocessing import Process
 from multiprocessing import Pipe
 from xvfbwrapper import Xvfb
 
-lr = 0.001
+lr = 0.0001
 gamma = 0.95
 
-iters_list = [50, 100, 200]
+iters_list = [200]#[50, 100, 200]
 
 base_outfolder = "../../results"
 
