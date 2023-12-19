@@ -78,10 +78,14 @@ class PalacellEnv():
 
     if mode=='circles':
       work1, work2 = Pipe(True)
-      prolif_env = PalacellEnv(iters=self.iters, configuration_file='circle_prolif_'+str(self.lr)+'_'+str(self.gamma)+'.xml',
+      prolif_env = PalacellEnv(iters=self.iters, configuration_file='circle_prolif_iters'+str(self.iters)+"_"+str(self.lr)+'_'+str(self.gamma)+'.xml',
                               output_file='chem_'+str(self.iters)+'_'+str(self.lr)+'_'+str(self.gamma)+'-',
                               output_dir='experiment2_iters/inner/new2_palacell_circle_prolif_out_iters'+str(self.iters), max_iterations=2500,
-                              lr=self.lr, gamma=self.gamma, target=self.target, mode='circle_prolif', testingMode=testingMode)
+                              lr=self.lr, gamma=self.gamma, target=self.target, mode='circle_prolif',
+                              preload_model_weights = True,
+                              preload_data_to_save = True,
+                              preload_performance = True,
+                              testingMode=testingMode)
       prolif_env.epochs = self.epochs
       suf = base_outfolder+"/experiment2/inner/new2_palacell_circle_prolif_out_"+str(self.iters)+'_'+str(lr)+'_'+str(gamma)
       if self.preload_model_weights:
@@ -94,6 +98,8 @@ class PalacellEnv():
       prolif_train = ppt.ProlifTrain(self.prolif_env, self.lr, self.gamma)
       prolif_proc = Process(target=prolif_train.train, args=[5, False, starting_epoch, work1, testingMode])
       prolif_proc.start()
+      print("Proliferation process started ", prolif_proc)
+      time.sleep(10)
       self.prolif_train = prolif_train
       self.prolif_proc = prolif_proc
       self.pipe = work2

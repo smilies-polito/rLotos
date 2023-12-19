@@ -29,8 +29,9 @@ def parallel_train(testingMode=False):
     trains = []
 
     for i, numIter in enumerate(iters_list):
-
+        
         if testingMode:
+            print("ENTERING TESTING MODE FOR", numIter)
             starting_epoch=70
             env = penv.PalacellEnv(iters=numIter, configuration_file='new_circles_iters_'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'.xml', output_file='chem__'+str(numIter)+"_"+str(lr)+'_'+str(gamma)+'-', output_dir='experiment2_iters/new_palacell_out_circles_iters'+str(numIter), max_iterations=3400, mode='circles', target=[200,250,80],lr=lr, gamma=gamma, starting_epoch=starting_epoch,
             preload_model_weights = True,
@@ -38,8 +39,10 @@ def parallel_train(testingMode=False):
             preload_performance = True,
             testingMode=testingMode)
         
+            print("Env created", env)
+
             env.epochs = 101 
-            current_env = str(numIter)+"_"+str(lr)+'_'+str(gamma)
+            current_env = str(lr)+'_'+str(gamma)
 
             env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_model.h5"
             env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_data_to_save"
