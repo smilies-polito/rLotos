@@ -37,7 +37,7 @@ class ProlifTrain:
             print(s)
         return strings
 
-    def train(self, save_every=10, verbose=True, starting_epoch=0, pipe=None):
+    def train(self, save_every=10, verbose=True, starting_epoch=0, pipe=None, testingMode=False):
         lr = self.lr
         gamma = self.gamma
         # use cpu if problems while testing on laptop (decomment following lines)
@@ -70,6 +70,13 @@ class ProlifTrain:
 
         self.model.build((1,self.env.width,self.env.height,self.env.channels))
         self.model.summary()
+        
+        if testingMode:
+            self.env.preload_model_weights=True
+            self.env.preload_losses=True
+            self.env.preload_performance=True
+            self.env.preload_data_to_save=True
+
         if self.env.preload_model_weights:
             model.load_weights(self.env.preload_model_weights)
         if self.env.preload_losses:
@@ -181,15 +188,18 @@ class ProlifTrain:
                     ac_loss += actor_discrete_loss
                 ac_loss = tf.convert_to_tensor(ac_loss)
 
-                #compute gradients and backpropagate
-                grads = tape.gradient(ac_loss, self.model.trainable_variables)
-                optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                if not testingMode:
+                    #compute gradients and backpropagate
+                    grads = tape.gradient(ac_loss, self.model.trainable_variables)
+                    optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
                 print("inner: epoch: ", j, ", loss: ", ac_loss.numpy(), " lr: ", lr, " gamma: ", gamma)
                 self.get_infos()
                 print("Elapsed epoch time: ",str(time.time()-elapsed_time))
                 self.losses.append(ac_loss)
-                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]):
+                
+                #save model if it has better  performance before changing it through backpropagation - or if in testing mode
+                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]) or testingMode:
                     self.model.save_weights(base_outfolder+"/"+output_dir+"/model_at_epoch_"+str(j)+"(best).h5")
                     np.save(base_outfolder+"/"+output_dir+"/data_to_save_at_epoch_"+str(j)+"(best)",self.env.data_to_save())
                 self.env.save_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j])

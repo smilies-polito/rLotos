@@ -93,7 +93,9 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
     var = metricValues['Variance']
 
     # PLOT MEAN
-    meanPlot=sns.lineplot(data=mean, color= "purple")
+
+    fig = plt.figure(figsize=(12, 6))
+    meanPlot=sns.lineplot(data=mean, color= "darkorange", markers=True)
     
     if experiment == '1_final_n_cells':
         plt.ylabel('Mean of the final number of cells', fontsize=10)
@@ -101,9 +103,13 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
     if experiment == '2_final_fraction_cells':
         plt.ylabel('Mean of the fraction of cells inside target', fontsize=10)
         meanPlot.set_title("Mean of the final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
+        
 
     plt.xlabel('Windows', fontsize=10)
     
+    
+    if experiment == '2_final_fraction_cells' and exploration=="numIter":
+        plt.ylim(0.58, 0.63)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
 
@@ -180,6 +186,9 @@ def plotPerformanceRL(results_folder, data_file, experiment, exploration, parame
         #plt.ylim(0.075, 0.125) #R 25
         #plt.ylim(0, 0.04)
         pass
+    
+    if experiment == '2_final_fraction_cells' and exploration=="numIter":
+        plt.ylim(0.56, 0.66)
         
 
     
@@ -228,13 +237,24 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
     # PLOT MEAN OF FITNESS PER GENERATION
     means=metricValues["Mean"]
     vars=metricValues["Variance"]
-    meanPlot=sns.lineplot(data=means, color= "magenta")
+
+    fig = plt.figure(figsize=(12, 6))
+
+    
+    meanPlot=sns.lineplot(data=means, color= "deepskyblue")
+
     if experiment == '1_final_n_cells':
         plt.ylabel('Mean of the final number of cells', fontsize=10)
         meanPlot.set_title("Maximum final number of cells - "+exploration+":"+parameterValues, fontsize=12)
     if experiment == '2_final_fraction_cells':
         plt.ylabel('Mean of the final fraction of cells inside target', fontsize=10)
         meanPlot.set_title("Maximum final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=12)
+        
+        
+    if experiment == '2_final_fraction_cells' and exploration=="numIter":
+        plt.ylim(0.58, 0.63)
+
+    plt.xlabel('Generations', fontsize=10)
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_MEAN.png')
     plt.close()
 
@@ -263,8 +283,7 @@ def plotPerformanceGA(results_folder, data_file, experiment, exploration, parame
         plot.set_title("Final fraction of cells inside target - "+exploration+":"+parameterValues, fontsize=15)
 
     if experiment == '2_final_fraction_cells' and exploration=="numIter":
-        plt.ylim(0.55, 0.67) #r 80
-        #plt.ylim(0.069, 0.125) # r25
+        plt.ylim(0.56, 0.66)
 
     plt.savefig(results_folder + experiment + '_' + exploration + "_" + parameterValues + '_violin_boxplots.png')
     plt.close()
@@ -436,6 +455,18 @@ if __name__ == '__main__':
         for gamma in ["0.95", "0.99"]:
             
             plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='lr_gamma', parameterValues=lr+"_"+gamma)
+
+    # EXPERIMENT 2 - RL - TARGET 2 - ITERS
+    results_folder="results/experiment2_iters/"
+    epoch="70"
+    gamma="0.95"
+    lr="0.0001"
+    experiment='2_final_fraction_cells'
+
+    for numIter in ["20", "50", "100"]:
+            
+            plotPerformanceRL(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter+"_"+lr+"_"+gamma)
+
 
 
     # EXPERIMENT 4 - GA - TARGET 2 - NUMITER
