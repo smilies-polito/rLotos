@@ -13,10 +13,10 @@ from multiprocessing import Process
 from multiprocessing import Pipe
 from xvfbwrapper import Xvfb
 
-lr = 0.001
+lr = 0.0001
 gamma = 0.95
 
-iters_list = [20, 50, 100, 200] #copiare dati per 20
+iters_list = [20, 50, 100]
 
 base_outfolder = "../../results"
 
@@ -41,9 +41,9 @@ def parallel_train(testingMode=False):
             env.epochs = 101 
             current_env = str(numIter)+"_"+str(lr)+'_'+str(gamma)
 
-            env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/model_at_epoch_"+str(starting_epoch)+".h5"
-            env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/data_to_save_at_epoch_"+str(starting_epoch)
-            env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/performance_at_epoch_"+str(starting_epoch)
+            env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_model.h5"
+            env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_data_to_save"
+            env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_performance"
             
         else:
             starting_epoch=0
