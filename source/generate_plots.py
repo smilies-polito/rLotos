@@ -352,13 +352,22 @@ def plotProtocols(results_folder, data_file, experiment, exploration, start_epoc
     plt.savefig(results_folder+experiment + '_' + exploration + "_" + stop_epoch_name + '_protocol.png')
     plt.close()
 
-def plotInitialPositions(results_folder, data_file, experiment, exploration, bestExperimentName, fillTarget=True):
+def plotInitialPositions(results_folder, data_file, experiment, exploration, bestExperiment, fillTarget=True):
 
     data=pd.DataFrame.from_dict(np.load(results_folder+data_file, allow_pickle=True).item())
-    positions = data['xxx']
+    
+    #create df linking positions and performances
+    pos_df=pd.DataFrame(index=range(len(data)), columns=["x-coord", "y-coord", "fitness"])
+    
+    positions = data['circle_actions']
+    for i, position in enumerate(positions):
+        print(i, position[0].numpy(),position[1].numpy(), data["inside_outside"][i][0])
+        pos_df["x-coord"].iloc[i]= position[0].numpy()
+        pos_df["y-coord"].iloc[i]= position[1].numpy()
+        pos_df["fitness"].iloc[i]= data["inside_outside"].iloc[i][0]
 
-    best_experiment_performance = positions[bestExperimentName]
-    best_experiment_performance.positions=[bestExperimentName]
+    #best_experiment_performance = data["inside_outside"][bestExperiment][0]
+    #best_experiment_performance.positions=[bestExperiment]
     
     # HEATMAPS
     # slice data in sliding windows of n epochs, jumping over m*10 epochs
@@ -367,34 +376,42 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
     m = 1
     n = 21 * m
     # slice position data in window-based chunks
-    list_df = [positions[i:i + n] for i in range(0, len(positions), 10 * m)]
-    #print(list_df)
+    list_df = [pos_df[i:i + n] for i in range(0, len(pos_df), 10 * m)]
+    print(list_df)
 
     # set range of relevant windows
-    # considering windows 1 - 12
+    # considering windows 1 - 6
     # starting from window 1
     # selecting df chunks from the second to two chunks before end since the last two are partial
     # using window-1 to compute colors on performance list cmap
     # TODO: enforce window range / performance list coherence
-    window_range = [1, 12]
+    window_range = [0, 6]
     window = window_range[0]
 
-    for chunk in list_df[window_range[0]:window_range[1]+1]:
+    
+    
+    performances=[]
+    for df in list_df:
+        performances.append(df["fitness"].mean())
+
+    # create colormap with performance values
+    min_val, max_val = min(performances), max(performances)
+    # use the reds colormap that is built-in and normalize over performance values
+    norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
+
+    color = mpl.cm.Reds(norm(performances))
+    
+    for chunk in list_df[window_range[0]:window_range[1]]:
 
         #epoch indexes considered for computation
-        #print(chunk.index)
+        print(chunk.index)
 
         if fillTarget:
 
-            # create colormap with performance values
-            performance_list = list(best_experiment_performance)
-            min_val, max_val = min(performance_list), max(performance_list)
+            
+            print(color)
 
-            # use the reds colormap that is built-in and normalize over performance values
-            norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
-            color = mpl.cm.Reds(norm(performance_list))
-
-            circle = plt.Circle((200, 250), 80, color=color[window-1], fill=True)
+            circle = plt.Circle((200, 250), 80, color=color[window], fill=True)
             fig, ax = plt.subplots()
             ax.set_aspect('equal')
 
@@ -403,7 +420,7 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
             fig, ax = plt.subplots()
             ax.set_aspect('equal')
 
-        fig = plt.hist2d(x=chunk['x axis'], y=chunk['y axis'], bins=[8, 8], cmap='Purples', range=[[0, 400], [0, 400]])
+        fig = plt.hist2d(x=chunk["x-coord"], y=chunk["y-coord"], bins=[8, 8], cmap='Purples', range=[[0, 400], [0, 400]])
         plt.title('Window ' + str(window), fontsize=30)
         plt.xlabel('X axis',  fontsize=10)
         plt.ylabel('Y axis',  fontsize=10)
@@ -413,7 +430,7 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
         # adding target
         ax.add_patch(circle)
 
-        plt.savefig(str(window) + '_' + experiment + '_' + exploration + '_' +  bestExperimentName + '_heatmap_coordinates_combined.png')
+        plt.savefig(results_folder + experiment + '_' + exploration + "_" + str(window) + '_heatmap_coordinates.png')
         plt.close()
 
         window = window + 1
@@ -422,6 +439,20 @@ def plotInitialPositions(results_folder, data_file, experiment, exploration, bes
 
 if __name__ == '__main__':
 
+
+    # EXPERIMENT 2 - RL - TARGET 2 - ITERS
+    results_folder="results/experiment2_iters/"
+    epoch="70"
+    gamma="0.95"
+    lr="0.0001"
+    experiment='2_final_fraction_cells'
+    bestExperiment=70
+
+    for numIter in ["20", "50", "100"]:
+            
+            plotInitialPositions(results_folder=results_folder+"new_palacell_out_circles_iters_"+numIter+"_"+lr+"_"+gamma+"/", data_file="data_to_save_at_epoch_"+epoch+".npy", experiment='2_final_fraction_cells', exploration='numIter', bestExperiment=bestExperiment)
+
+    exit(0)
     # EXPERIMENT 1.1 - RL - TARGET 1 - LR GAMMA
     results_folder="results/experiment1.1_final/"
     epoch="70"
