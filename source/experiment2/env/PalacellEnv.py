@@ -210,6 +210,7 @@ class PalacellEnv():
       '''
       wait for training process of prolif
       '''
+      print("CONFIG", self.configuration)
       self.pipe.send(self.configuration)
       out_path = self.pipe.recv()
 
