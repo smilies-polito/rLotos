@@ -534,9 +534,3 @@ if __name__ == '__main__':
     for numIter in ["20", "50", "100", "200"]:
         
         plotPerformanceGA(results_folder=results_folder+"new_palacell_out_"+numIter+".0/", data_file="fitness_track.csv", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter)
-
-    # EXPERIMENT 4_R25 - GA - TARGET 2 - NUMITER
-    results_folder="results/experiment4_r25/"
-    for numIter in ["20", "50", "100", "200"]:
-        
-        plotPerformanceGA(results_folder=results_folder+"new_palacell_out_"+numIter+".0/", data_file="fitness_track.csv", experiment='2_final_fraction_cells', exploration='numIter', parameterValues=numIter)
