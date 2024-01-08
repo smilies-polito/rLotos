@@ -101,11 +101,10 @@ class Train:
                 msg = recv.recv()
                 if msg=='info':
                     self.get_infos()
-            elapsed_time = time.time()
+            elapsed_time = time.process_time()
             self.epoch = j
             with tf.GradientTape() as tape:
                 done = False
-
                 rewards = []
                 values = []
                 log_probs = []
@@ -143,7 +142,7 @@ class Train:
                             temp_cont.append(tf.clip_by_value(continue_actions[i],self.env.range_continue[i][0],self.env.range_continue[i][1]))
                         
                         continue_actions = tf.convert_to_tensor(temp_cont)
-
+                    actime1=time.process_time()
                     '''
                     act on the environment
                     '''
@@ -151,6 +150,8 @@ class Train:
                     rewards.append(reward)
                     observation = observation/255
                     observation = tf.convert_to_tensor(observation)
+                    actime2=time.process_time()
+                    print("TIME TO ACT ON ENV", actime2-actime1)
 
                     if done:
                         break
@@ -198,6 +199,7 @@ class Train:
                 if num_discrete>0:
                     ac_loss += actor_discrete_loss
                 ac_loss = tf.convert_to_tensor(ac_loss)
+                
 
                 #save model if it has better  performance before changing it through backpropagation
                 if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]):
@@ -225,6 +227,7 @@ class Train:
                 #for i in inds:
                 #    print(model.trainable_variables)
         
+                print("TIME TO LEARN:", time.process_time()-actime2)
             '''
             save weights, scores, observations
             '''
