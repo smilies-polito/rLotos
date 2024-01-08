@@ -4,7 +4,7 @@ data/PalaCell2D/app/*
 !data/PalaCell2D/app/palaCell.cpp
 output
 results_rLotos_ga_local
-source/experiment1/__pycache__/*
+results_local_rlotos
 source/experiment1/env/__pycache__/checks.cpython-38.pyc
 source/experiment1/env/__pycache__/PalacellEnv.cpython-38.pyc
 source/experiment1/env/__pycache__/vtkInterface.cpython-38.pyc

@@ -21,27 +21,13 @@ base_outfolder = "../../results"
 def parallel_train():
 
     #set when loading previous state
-   # starting_epoch = 0
+    starting_epoch = 0
 
     envs = []
     trains = []
 
     combs = itertools.product(lr_list, gamma_list)
     for i, (lr, gamma) in enumerate(combs):
-        
-        if lr == 0.001 and gamma == 0.99:
-            starting_epoch=95
-        elif lr == 0.001 and gamma == 0.95:
-            starting_epoch=60
-        elif lr == 0.0001 and gamma == 0.99:
-            starting_epoch=40
-        elif lr == 0.0001 and gamma == 0.95:
-            starting_epoch=40
-        elif lr == 0.00001 and gamma == 0.99:
-            starting_epoch=40
-        elif lr == 0.00001 and gamma == 0.95:
-            starting_epoch=105
-
 
         env = penv.PalacellEnv(iters=20, configuration_file='new_circles_'+str(lr)+'_'+str(gamma)+'.xml', output_file='chem__'+str(lr)+'_'+str(gamma)+'-',
             output_dir='experiment2/new_palacell_out_circles', max_iterations=3400, mode='circles', target=[200,250,80],
@@ -50,6 +36,7 @@ def parallel_train():
             preload_data_to_save = True,
             preload_performance = True
         )
+        
         #env.epochs = 71
         env.epochs = 71
 
