@@ -117,6 +117,7 @@ class Train:
             self.epoch = j
             with tf.GradientTape() as tape:
                 done = False
+                t1=time.process_time()
                 rewards = []
                 values = []
                 log_probs = []
@@ -248,7 +249,9 @@ class Train:
                 #for i in inds:
                 #    print(model.trainable_variables)
         
-                print("TIME TO LEARN:", time.process_time()-actime2)
+
+                t2=time.process_time()
+                print("*****************\nELAPSED TIME FOR EPOCH\n", t2-t1, "\nCURRENT PROCESS TIME", t2)
             '''
             save weights, scores, observations
             '''
