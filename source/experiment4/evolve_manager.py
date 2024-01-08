@@ -47,7 +47,7 @@ def parallel_evolve():
         # iters indicates the total simulation length required
         # max iterations the maximum simulation length accepted
         # (in this case it is not required to specify it but let's set them coherently)
-        env = penv.PalacellEnv(iters=20, configuration_file='compr_'+str(initial_population)+'_'+str(protocol_segment_length)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(protocol_segment_length)+'-', output_dir='experiment4/new_palacell_out', max_iterations=2500, mode='circles', target=[200,250,20])   
+        env = penv.PalacellEnv(iters=20, configuration_file='compr_'+str(initial_population)+'_'+str(protocol_segment_length)+'.xml', output_file='chem_'+str(initial_population)+'_'+str(protocol_segment_length)+'-', output_dir='experiment4/new_palacell_out', max_iterations=2500, mode='circles', target=[200,250,25])   
          
         print("Creating environment ", i, " with ", initial_population, " solutions per population, and ", protocol_segment_length, " protocol segment length.")
 
