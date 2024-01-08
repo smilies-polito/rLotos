@@ -40,7 +40,7 @@ class Train:
             print(s)
         return strings
 
-    def train(self, save_every=10, verbose=True, recv=None, starting_epoch=0):
+    def train(self, save_every=10, verbose=True, recv=None, starting_epoch=0, testingMode=False):
         lr = self.lr
         gamma = self.gamma
         #use cpu if problems while testing on laptop (decomment following lines)
@@ -73,10 +73,22 @@ class Train:
         iterations = self.env.iterations
 
         output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)
-        if not os.path.exists(base_outfolder):
-            os.makedirs(base_outfolder)
-        if not os.path.exists(base_outfolder+"/"+output_dir):
-            os.makedirs(base_outfolder+"/"+output_dir)
+        
+        # creating testing subfolder for testing results
+        if testingMode:
+            print("TESTING MODE SET UP")
+            output_dir = self.env.output_dir+"_"+str(lr)+"_"+str(gamma)+"/testing"
+            print("Checking or creating folder to store testing results at: ", output_dir)
+            if not os.path.exists(base_outfolder):
+                os.makedirs(base_outfolder)
+            if not os.path.exists(base_outfolder+"/"+output_dir):
+                os.makedirs(base_outfolder+"/"+output_dir)
+                print("created folder at "+base_outfolder+"/"+output_dir)
+        else:
+            if not os.path.exists(base_outfolder):
+                os.makedirs(base_outfolder)
+            if not os.path.exists(base_outfolder+"/"+output_dir):
+                os.makedirs(base_outfolder+"/"+output_dir)
 
         self.model.build((1,self.env.width,self.env.height,self.env.channels))
         self.model.summary()
@@ -118,6 +130,14 @@ class Train:
                         msg = recv.recv()
                         if msg=='info':
                             self.get_infos()
+
+                    if testingMode:
+                        print("TESTING MODE")
+                        print("Testing epoch", j)
+                        print("Iteration ", iter, "of", iterations, "total iterations")
+                        
+                        self.get_infos()
+
                     '''
                     obtain actions and generate log probs
                     '''
@@ -201,16 +221,17 @@ class Train:
                 ac_loss = tf.convert_to_tensor(ac_loss)
                 
 
-                #save model if it has better  performance before changing it through backpropagation
-                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]):
+                #save model if it has better  performance before changing it through backpropagation - or if in testing mode
+                if self.env.check_performance([Qvals[0].numpy(),time.time()-elapsed_time,ac_loss,j]) or testingMode:
                     self.model.save_weights(base_outfolder+"/"+output_dir+"/model_at_epoch_"+str(j)+"(best).h5") 
                     np.save(base_outfolder+"/"+output_dir+"/data_to_save_at_epoch_"+str(j)+"(best)",self.env.data_to_save())
                     np.save(base_outfolder+"/"+output_dir+"/performance_at_epoch_"+str(j)+"(best)",self.env.get_performance())
                     np.save(base_outfolder+"/"+output_dir+"/losses_at_epoch_"+str(j)+"(best)",self.losses)
 
-                #compute gradients and backpropagate
-                grads = tape.gradient(ac_loss, self.model.trainable_variables)
-                optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                if not testingMode:
+                    #compute gradients and backpropagate
+                    grads = tape.gradient(ac_loss, self.model.trainable_variables)
+                    optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
                 '''
                 print epoch stats and save weights, scores, observations

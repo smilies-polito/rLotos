@@ -29,7 +29,7 @@ disc_acts = ["X","Y"]
 class PalacellEnv():
   def __init__(self,width=300, height=300, lr=0.001, gamma=0.99, iters=20, max_iterations=4200,
    preload_model_weights=None, preload_losses=None, preload_observations=None, preload_performance=None, preload_data_to_save=None,
-   output_dir="palacell_out", mode="prolif", target=[0,0,0], configuration_file='compr.xml', output_file='chem_1-', starting_epoch=0):
+   output_dir="palacell_out", mode="prolif", target=[0,0,0], configuration_file='compr.xml', output_file='chem_1-', starting_epoch=0, testingMode=False):
     self.configuration_dir = "./"
     self.configuration_file = configuration_file
     self.configuration = self.configuration_dir+configuration_file
@@ -78,10 +78,14 @@ class PalacellEnv():
 
     if mode=='circles':
       work1, work2 = Pipe(True)
-      prolif_env = PalacellEnv(iters=self.iters, configuration_file='circle_prolif_'+str(self.iters)+'_'+str(self.lr)+'_'+str(self.gamma)+'.xml',
+      prolif_env = PalacellEnv(iters=self.iters, configuration_file='circle_prolif_iters'+str(self.iters)+"_"+str(self.lr)+'_'+str(self.gamma)+'.xml',
                               output_file='chem_'+str(self.iters)+'_'+str(self.lr)+'_'+str(self.gamma)+'-',
-                              output_dir='experiment2/inner/new2_palacell_circle_prolif_out_'+str(self.iters), max_iterations=2500,
-                              lr=self.lr, gamma=self.gamma, target=self.target, mode='circle_prolif')
+                              output_dir='experiment2_iters/inner/new2_palacell_circle_prolif_out_iters'+str(self.iters), max_iterations=2500,
+                              lr=self.lr, gamma=self.gamma, target=self.target, mode='circle_prolif',
+                              preload_model_weights = True,
+                              preload_data_to_save = True,
+                              preload_performance = True,
+                              testingMode=testingMode)
       prolif_env.epochs = self.epochs
       suf = base_outfolder+"/experiment2/inner/new2_palacell_circle_prolif_out_"+str(self.iters)+'_'+str(lr)+'_'+str(gamma)
       if self.preload_model_weights:
@@ -92,8 +96,10 @@ class PalacellEnv():
         prolif_env.preload_performance = suf+"/performance_at_epoch_"+str(starting_epoch)
       self.prolif_env = prolif_env
       prolif_train = ppt.ProlifTrain(self.prolif_env, self.lr, self.gamma)
-      prolif_proc = Process(target=prolif_train.train, args=[5, False, starting_epoch, work1])
+      prolif_proc = Process(target=prolif_train.train, args=[5, False, starting_epoch, work1, testingMode])
       prolif_proc.start()
+      print("Proliferation process started ", prolif_proc)
+      time.sleep(10)
       self.prolif_train = prolif_train
       self.prolif_proc = prolif_proc
       self.pipe = work2
@@ -210,6 +216,7 @@ class PalacellEnv():
       '''
       wait for training process of prolif
       '''
+      print("CONFIG", self.configuration)
       self.pipe.send(self.configuration)
       out_path = self.pipe.recv()
 
