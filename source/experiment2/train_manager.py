@@ -16,8 +16,8 @@ from multiprocessing import Pipe
 from xvfbwrapper import Xvfb
 >>>>>>> development
 
-lr_list = [0.001, 0.0001, 0.00001]
-gamma_list = [0.99, 0.95]
+lr_list = [0.0001]#[0.001, 0.0001, 0.00001]
+gamma_list = [0.99]#, 0.95]
 
 base_outfolder = "../../results"
 
@@ -31,26 +31,28 @@ def parallel_train():
 
     combs = itertools.product(lr_list, gamma_list)
     for i, (lr, gamma) in enumerate(combs):
+
         env = penv.PalacellEnv(iters=20, configuration_file='new_circles_'+str(lr)+'_'+str(gamma)+'.xml', output_file='chem__'+str(lr)+'_'+str(gamma)+'-',
             output_dir='experiment2/new_palacell_out_circles', max_iterations=3400, mode='circles', target=[200,250,80],
             lr=lr, gamma=gamma, starting_epoch=starting_epoch,
-            #preload_model_weights = True,
-            #preload_data_to_save = True,
-            #preload_performance = True
+            preload_model_weights = True,
+            preload_data_to_save = True,
+            preload_performance = True
         )
+        
         #env.epochs = 71
-        env.epochs = 141
+        env.epochs = 71
 
         #set the following line and one of the following two blocks when starting from a previous training
         #also uncomment the three 'preload' lines in the PalacellEnv constructor
         #the first block refers to any data file produced during the training
         #the second block refers to data files produced after the last possible epoch, if the previous training has been completed
-        #current_env = str(lr)+'_'+str(gamma)
+        current_env = str(lr)+'_'+str(gamma)
 
         #from starting_epoch
-        #env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/model_at_epoch_"+str(starting_epoch)+".h5"
-        #env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/data_to_save_at_epoch_"+str(starting_epoch)
-        #env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/performance_at_epoch_"+str(starting_epoch)
+        env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/model_at_epoch_"+str(starting_epoch)+".h5"
+        env.preload_data_to_save = base_outfolder+"/"+env.output_dir+'_'+current_env+"/data_to_save_at_epoch_"+str(starting_epoch)
+        env.preload_performance = base_outfolder+"/"+env.output_dir+'_'+current_env+"/performance_at_epoch_"+str(starting_epoch)
 
         #after another training has been fully completed
         #env.preload_model_weights = base_outfolder+"/"+env.output_dir+'_'+current_env+"/last_model.h5"
