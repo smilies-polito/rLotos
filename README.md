@@ -263,6 +263,7 @@ Otherwise, the option defaults to `False`.
 |   |   ├── evolve_manager.py                // Starts the evolutionary process of experiment 4
 |   |   └── evolve.py                        // Performs the evolution for experiment 4
 |   ├── EnvironmentBlueprint.py              // Template to build an environment
+|   ├── generate_plots.py                    // Script to generate figures from RL and GA outputs
 |   └── rLotos.def                           // Singularity recipe
 |
 └── README.md                                // This README file          
