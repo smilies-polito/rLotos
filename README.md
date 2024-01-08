@@ -72,6 +72,8 @@ In _Castrignanò et al., 2023_, provided experiments organize around Target 1 (m
 * **Experiment 2.2**: refers to Target 2 - RL - exploration of different values of `iters` with fixed values of `lr` and `gamma`
 * **Experiment 4**: refers to Target 2 - GA - exploration of different values of `iters`
 
+**Experiment 4** relies on the implementation of the `PyGAD` library, an open-source Python 3 library for implementing the genetic algorithm (URL: https://pypi.org/project/pygad/). 
+
 ### Reproducing the experiments using the rLotos Singularity container
 
 To reproduce the experiments from _Castrignanò et al., 2023_, run the `rLotos.sif` container with experiment-specific commandline arguments.
